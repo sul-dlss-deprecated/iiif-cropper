@@ -1,0 +1,42 @@
+<html>
+  <head>
+    
+  </head>
+  <body>
+    <img id="iiif-image" src="https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/full/full/0/default.jpg" width=100%>
+    <input id='output' type='text'>
+    <script src='../node_modules/jquery-jcrop/js/jquery.min.js'></script>
+    <script type='text/javascript'>
+      // Load dependencies from node_modules if possible, else load from a CDN
+      if (window.jQuery === undefined) {
+        var script = document.createElement('script');
+        script.src = 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+        script.type = 'text/javascript';
+        document.getElementsByTagName('body')[0].appendChild(script);
+        // Poll for jQuery to come into existance
+        var checkReady = function(callback) {
+            if (window.jQuery) {
+                callback(jQuery);
+            }
+            else {
+                window.setTimeout(function() { checkReady(callback); }, 10);
+            }
+        };
+
+        // Start polling...
+        checkReady(function($) {
+          $.getScript('https://cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/js/jquery.Jcrop.js');
+          $('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/css/jquery.Jcrop.css'));
+        });
+        
+      } else {
+        $.getScript('../node_modules/jquery-jcrop/js/jquery.Jcrop.js');
+        $('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '../node_modules/jquery-jcrop/css/jquery.Jcrop.css'));
+      }
+    </script>
+    <script src='../dist/iiif-cropper.js'></script>
+    <script>
+      $('#iiif-image').Jcrop();
+    </script>
+  </body>
+</html>
