@@ -1,10 +1,8 @@
 <html>
   <head>
-    
   </head>
   <body>
-    <img id="iiif-image" src="https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/full/full/0/default.jpg" width=100%>
-    <input id='output' type='text'>
+    <div id="osd-container"></div>
     <script src='../node_modules/jquery-jcrop/js/jquery.min.js'></script>
     <script type='text/javascript'>
       // Load dependencies from node_modules if possible, else load from a CDN
@@ -28,15 +26,27 @@
           $.getScript('https://cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/js/jquery.Jcrop.js');
           $('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/css/jquery.Jcrop.css'));
         });
-        
+
       } else {
         $.getScript('../node_modules/jquery-jcrop/js/jquery.Jcrop.js');
         $('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '../node_modules/jquery-jcrop/css/jquery.Jcrop.css'));
       }
     </script>
     <script src='../dist/iiif-cropper.js'></script>
+    <script src='../lib/openseadragon.js'></script>
     <script>
-      $('#iiif-image').Jcrop();
+     OpenSeadragon({
+         id: 'osd-container',
+         preserveViewport: true,
+         visibilityRatio:    1,
+         minZoomLevel:       1,
+         defaultZoomLevel:   1,
+         showNavigationControl: false,
+         tileSources:['https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/info.json']
+     });
+
+     /*       thing = $('#iiif-image').iiif-cropper({ */
+     $('#osd-container').Jcrop();
     </script>
   </body>
 </html>
