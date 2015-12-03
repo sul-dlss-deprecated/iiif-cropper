@@ -32,10 +32,10 @@
         $('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '../node_modules/jquery-jcrop/css/jquery.Jcrop.css'));
       }
     </script>
-    <script src='../dist/iiif-cropper.js'></script>
     <script src='../lib/openseadragon.js'></script>
+    <script src='../dist/iiif-cropper.js'></script>
     <script>
-     OpenSeadragon({
+     var osdCanvas = new OpenSeadragon({
          id: 'osd-container',
          preserveViewport: true,
          visibilityRatio:    1,
@@ -45,8 +45,8 @@
          tileSources:['https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/info.json']
      });
 
-     /*       thing = $('#iiif-image').iiif-cropper({ */
-     $('#osd-container').Jcrop();
+     osdCanvas.iiifCrop();
+
     </script>
   </body>
 </html>
