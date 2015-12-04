@@ -1,22 +1,41 @@
 /*! iiif-crop - v0.0.0 - 2015-10-19
-* Copyright (c) 2015 ; Licensed Apache 2.0 */
+ * Copyright (c) 2015 ; Licensed Apache 2.0 */
 
 (function(OSD, undefined) {
 
-    OSD.Viewer.prototype.iiifCrop = function(options) {
-        options.osd = this;
+  OSD.Viewer.prototype.iiifCrop = function(options) {
+    if (!options) { var options = {}; }
+    options.osd = this;
 
-        this.iiifCrop = new IiifCrop(options);
-    };
+    this.iiifCrop = new IiifCrop(options);
+  };
 
-    var IiifCrop = function(options) {
-        this.osd = options.osd;
-        this.selectorElement = $('<div></div>')[0];
-        this.osd.addOverlay(this.selectorElement, new OpenSeadragon.Rect(0.33, 0.5, 0.2, 0.4));
-    };
+  var IiifCrop = function(options) {
+    this.selection = new IIIFRegion(options);
+    this.osd = options.osd;
 
-    IiifCrop.prototype = {
-    };
+    // This creates the element representing
+    // the selection on the canvas as an osd overlay.
+    this.selectorElement = document.createElement('div');
+    this.selectorElement.className = 'iiif-crop-tracker';
+    this.osd.addOverlay(this.selectorElement, new OpenSeadragon.Rect(0.33, 0.2, 0.6, 0.3));
+
+    // Deletes the osd overlay element representing
+    // the  selection
+  };
+
+  var IIIFRegion = function(options) {
+    this.x = 0 || options.x;
+    this.y = 0 || options.y;
+    this.width = 0 || options.width;
+    this.height = 0 || options.height;
+    this.rotation = 0 || options.rotation;
+    this.scale = options.scale;
+  }
+
+
+  IiifCrop.prototype = {
+  };
 
 })(OpenSeadragon);
 
@@ -306,7 +325,7 @@
 //                 $origimg.width($origimg[0].width);
 //                 $origimg.height($origimg[0].height);
 //             } else {
-//                 // Obtain dimensions from temporary image in case the original is not loaded yet (e.g. IE 7.0). 
+//                 // Obtain dimensions from temporary image in case the original is not loaded yet (e.g. IE 7.0).
 //                 var tempImage = new Image();
 //                 tempImage.src = $origimg[0].src;
 //                 $origimg.width(tempImage.width);
