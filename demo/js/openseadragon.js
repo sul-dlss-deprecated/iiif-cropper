@@ -1,6 +1,6 @@
-//! OpenSeadragon 2.1.0
-//! Built on 2015-11-12
-//! Git commit: v2.1.0-0-404a248
+//! openseadragon 2.1.0
+//! Built on 2015-12-01
+//! Git commit: v2.1.0-3-b2c17b5-dirty
 //! http://openseadragon.github.io
 //! License: http://openseadragon.github.io/license/
 
@@ -89,7 +89,7 @@
 
 
 /**
- * @version  OpenSeadragon 2.1.0
+ * @version  openseadragon 2.1.0
  *
  * @file
  * <h2><strong>OpenSeadragon - Javascript Deep Zooming</strong></h2>
@@ -12881,10 +12881,11 @@ function configureFromObject( tileSource, configuration ){
             }
             return context;
         },
-        /**
-         * @private Build the differents levels of the pyramid if possible
-         * (canvas API enabled and no canvas tainting issue)
-         */
+
+        // private
+        //
+        // Builds the differents levels of the pyramid if possible
+        // (i.e. if canvas API enabled and no canvas tainting issue).
         _buildLevels: function () {
             var levels = [{
                     url: this._image.src,

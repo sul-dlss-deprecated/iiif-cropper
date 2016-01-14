@@ -1,80 +1,82 @@
-/*global module:false*/
+/* global module:false */
 module.exports = function(grunt) {
 
-    // Project configuration.
-    'use strict';
-    grunt.initConfig({
-        // Metadata.
-        pkg: grunt.file.readJSON('package.json'),
-        jshintrc: grunt.file.read('.jshintrc'),
-        banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
-            '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
-            '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' +
-            '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.nam' +
-            'e %>; Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n',
-        // Task configuration.
-        concat: {
-            options: {
-                banner: '<%= banner %>',
-                stripBanners: true
-            },
-            dist: {
-                src: ['lib/<%= pkg.name %>.js'],
-                dest: 'dist/<%= pkg.name %>.js'
-            }
+  // Project configuration.
+  'use strict';
+  grunt.initConfig({
+    // Metadata.
+    pkg: grunt.file.readJSON('package.json'),
+    jshintrc: grunt.file.read('.jshintrc'),
+    banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
+      '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
+      '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' +
+      '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.nam' +
+      'e %>; Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n',
+    // Task Configuration
+    webpack: {
+      dev: {
+        entry: {
+          javascript: './src/main.js'
         },
-        connect: {
-            server: {
-                options: {
-                    port: 8000
-                }
-            }
+        output: {
+          filename: 'iiif-osd-crop.js',
+          path: __dirname + '/dist',
         },
-        uglify: {
-            options: {
-                banner: '<%= banner %>'
-            },
-            dist: {
-                src: '<%= concat.dist.dest %>',
-                dest: 'dist/<%= pkg.name %>.min.js'
-            }
-        },
-        jshint: {
-            options: '<%= jshintrc %>',
-            gruntfile: {
-                src: 'Gruntfile.js'
-            },
-            libTest: {
-                src: ['src/**/*.js', 'test/**/*.js']
-            }
-        },
-        test: {
-            src: 'src/**/*.js',
-            options: {
-                specs: 'test/src/**/*Test.js'
-            }
-        },
-        watch: {
-            gruntfile: {
-                files: '<%= jshint.gruntfile.src %>',
-                tasks: ['jshint:gruntfile']
-            },
-            libTest: {
-                files: '<%= jshint.lib_test.src %>',
-                tasks: ['jshint:libTest', 'test']
-            }
+        externals: {
+          'OpenSeadragon': 'OpenSeadragon'
         }
-    });
+      }
+    },
+    connect: {
+      server: {
+        options: {
+          port: 8000
+        }
+      }
+    },
+    jshint: {
+      options: '<%= jshintrc %>',
+      gruntfile: {
+        src: 'Gruntfile.js'
+      },
+      libTest: {
+        src: ['src/**/*.js', 'test/**/*.js']
+      }
+    },
+    jasmine: {
+      src: 'dist/**/*.js',
+      options: {
+        specs: 'test/src/**/*Test.js',
+        vendor: './node_modules/openseadragon/build/openseadragon/openseadragon.min.js',
+        outfile: 'test/_SpecRunner.html'
+      }
+    },
+    watch: {
+      javascript: {
+        files: './src/**/*.js',
+        tasks: ['jshint:libTest', 'webpack']
+      },
+      gruntfile: {
+        files: '<%= jshint.gruntfile.src %>',
+        tasks: ['jshint:gruntfile']
+      },
+      libTest: {
+        files: '<%= jshint.lib_test.src %>',
+        tasks: ['jshint:libTest', 'test']
+      }
+    }
+  });
 
-    // These plugins provide necessary tasks.
-    grunt.loadNpmTasks('grunt-contrib-jasmine');
-    grunt.loadNpmTasks('grunt-contrib-concat');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-contrib-connect');
+  // These plugins provide necessary tasks.
+  grunt.loadNpmTasks('grunt-contrib-jasmine');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-webpack');
 
-    // Default task.
-    grunt.registerTask('default', ['jshint', 'test', 'concat', 'uglify']);
-    grunt.registerTask('serve', ['connect', 'watch']);
+  // Default task.
+  grunt.registerTask('test', ['jshint', 'jasmine']);
+  // grunt.registerTask('cover', []);
+  grunt.registerTask('serve', ['webpack', 'connect', 'watch']);
+  grunt.registerTask('default', ['jshint', 'webpack', 'test']);
 };
