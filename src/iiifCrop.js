@@ -1,8 +1,6 @@
 'use strict';
 
-var IiifCrop = function() {
-  console.log('I have been loaded');
-
+var IiifCrop = function(regionObj, dispatcher) {
   // // This creates the element representing
   // // the selection on the canvas as an osd overlay.
   // this.selectorElement = document.createElement('div');

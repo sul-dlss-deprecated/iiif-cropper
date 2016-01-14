@@ -53,16 +53,12 @@ module.exports = function(grunt) {
     },
     watch: {
       javascript: {
-        files: './src/**/*.js',
-        tasks: ['jshint:libTest', 'webpack']
+        files: '<%= jshint.libTest.src %>',
+        tasks: ['jshint:libTest', 'webpack', 'test']
       },
       gruntfile: {
         files: '<%= jshint.gruntfile.src %>',
         tasks: ['jshint:gruntfile']
-      },
-      libTest: {
-        files: '<%= jshint.lib_test.src %>',
-        tasks: ['jshint:libTest', 'test']
       }
     }
   });
