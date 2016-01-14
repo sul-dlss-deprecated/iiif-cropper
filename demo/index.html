@@ -1,42 +1,127 @@
 <html>
-  <head>
-    
-  </head>
-  <body>
-    <img id="iiif-image" src="https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/full/full/0/default.jpg" width=100%>
-    <input id='output' type='text'>
-    <script src='../node_modules/jquery-jcrop/js/jquery.min.js'></script>
-    <script type='text/javascript'>
-      // Load dependencies from node_modules if possible, else load from a CDN
-      if (window.jQuery === undefined) {
-        var script = document.createElement('script');
-        script.src = 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
-        script.type = 'text/javascript';
-        document.getElementsByTagName('body')[0].appendChild(script);
-        // Poll for jQuery to come into existance
-        var checkReady = function(callback) {
-            if (window.jQuery) {
-                callback(jQuery);
-            }
-            else {
-                window.setTimeout(function() { checkReady(callback); }, 10);
-            }
-        };
+    <head>
+        <style>
+         .container {
+             width: 70%;
+             height: 50%;
+             margin:0 auto;
+         }
+         .iiif-crop-tracker {
+             position:absolute;
+             background-color: rbga(255,255,255, 0.1);
+             border: 2px solid white;
+             box-shadow: 0 0 15px black;
+             height: 150px;
+             width: 200px;
+         }
+         .debug-box {
+             border:1px solid pink;
+         }
+         .iiif-crop-top-drag-handle {
+             position:absolute;
+             top:0;
+             width: 100%;
+             height: 15px;
+             cursor: n-resize;
+         }
+         .iiif-crop-bottom-drag-handle {
+             position:absolute;
+             bottom:0;
+             width: 100%;
+             height: 15px;
+             cursor: s-resize;
+         }
+         .iiif-crop-left-drag-handle {
+             position:absolute;
+             left:0;
+             width: 15px;
+             height: 100%;
+             cursor: w-resize;
+         }
+         .iiif-crop-right-drag-handle {
+             position:absolute;
+             right:0;
+             width: 15px;
+             height: 100%;
+             cursor: w-resize;
+         }
+         .iiif-crop-top-left-drag-node {
+             position:absolute;
+             top:0;
+             left:0;
+             width: 15px;
+             height: 15px;
+             cursor: nw-resize;
+         }
+         .iiif-crop-top-right-drag-node {
+             position:absolute;
+             top:0;
+             right:0;
+             width: 15px;
+             height: 15px;
+             cursor: ne-resize;
+         }
+         .iiif-crop-bottom-left-drag-node {
+             position:absolute;
+             bottom:0;
+             left:0;
+             width: 15px;
+             height: 15px;
+             cursor: se-resize;
+         }
+         .iiif-crop-bottom-right-drag-node {
+             position:absolute;
+             bottom:0;
+             right:0;
+             width: 15px;
+             height: 15px;
+             cursor: sw-resize;
+         }
+        </style>
+    </head>
+    <body>
+        <!-- <div class="iiif-crop-tracker">
+             <div class="iiif-crop-top-drag-handle">
+             </div>
+             <div class="iiif-crop-right-drag-handle">
+             </div>
+             <div class="iiif-crop-bottom-drag-handle">
+             </div>
+             <div class="iiif-crop-left-drag-handle">
+             </div>
+             <div class="iiif-crop-top-left-drag-node">
+             </div>
+             <div class="iiif-crop-top-right-drag-node">
+             </div>
+             <div class="iiif-crop-bottom-right-drag-node">
+             </div>
+             <div class="iiif-crop-bottom-left-drag-node">
+             </div>
+           --></div>
+        <div class="container">
+            <h1>IIIF OpenSeadragon Cropping Tool</h1>
+            <p>
+                Include this script along with OpenSeadragon and
+                a plugin will be added allowing you to wrap an
+                OpenSeadragon canvas with a cropping widget.
+            </p>
+            <div id="osd-container"></div>
+        </div>
+        <script src='../node_modules/jquery-jcrop/js/jquery.min.js'></script>
+        <script src='js/openseadragon.js'></script>
+        <script src='../dist/iiif-osd-crop.js'></script>
+        <script>
+         var osdCanvas = new OpenSeadragon({
+             id: 'osd-container',
+             preserveViewport: true,
+             showNavigationControl: false,
+             constrainDuringPan: true,
+             tileSources:['https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/info.json']
 
-        // Start polling...
-        checkReady(function($) {
-          $.getScript('https://cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/js/jquery.Jcrop.js');
-          $('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/css/jquery.Jcrop.css'));
-        });
-        
-      } else {
-        $.getScript('../node_modules/jquery-jcrop/js/jquery.Jcrop.js');
-        $('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '../node_modules/jquery-jcrop/css/jquery.Jcrop.css'));
-      }
-    </script>
-    <script src='../dist/iiif-cropper.js'></script>
-    <script>
-      $('#iiif-image').Jcrop();
-    </script>
-  </body>
+         });
+
+         osdCanvas.iiifCrop();
+
+        </script>
+    </body>
 </html>
