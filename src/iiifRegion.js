@@ -1,5 +1,7 @@
 'use strict';
 
+var ee = require('event-emitter');
+
 var IiifRegion = function(options) {
   this.serviceBase = options.serviceBase;
   this.x = 0 || options.x;
@@ -16,7 +18,7 @@ var IiifRegion = function(options) {
 // The whole point of this component is to
 // be able to extract a iiif url for a cropped
 // region of an image, from an OpenSeadragon
-// isntance.
+// instance.
 
 // So the core data structure is just the region
 // selected. The region must be able to be

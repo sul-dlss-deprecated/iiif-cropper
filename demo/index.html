@@ -1,126 +1,167 @@
 <html>
     <head>
         <style>
-         .container {
-             width: 70%;
-             height: 50%;
-             margin:0 auto;
+         body {
+             background-color: rgb(0,40,40);
          }
-         .iiif-crop-tracker {
+         .pageTitle {
+             text-align: center;
+             color: powderBlue;
+         }
+         p {
+             color: powderBlue;
+         }
+         .container {
+             width: 100%;
+             height: 100%;
+             margin:0 auto;
+             box-sizing: border-box;
+             padding: 5% 10%;
+         }
+         .osd-container {
+             width: 100%;
+             height: 400px;
+             margin:0 auto;
+             margin-top: 5%;
+         }
+         .button-container {
+             margin: 0 auto;
+             text-align: center;
+         }
+         .iiif-crop-selection {
              position:absolute;
-             background-color: rbga(255,255,255, 0.1);
+             background-color: rgba(255,255,255,0.1);
              border: 2px solid white;
-             box-shadow: 0 0 15px black;
+             /*
+             The following shadow makes up the
+             "mask" that sits over the rest of
+             the canvas around the selected area.
+             The first parameter prevents the shadow
+             from "spreading", and extends a very long way.
+             */
+             box-shadow: 0 0 0 10000px rgba(0,0,0,0.5);
              height: 150px;
              width: 200px;
+             cursor: move;
          }
-         .debug-box {
-             border:1px solid pink;
+         .iiif-crop-dragNode {
+             border:2px solid white;
+             border-radius: 20px;
+             height: 12px;
+             width: 12px;
+             box-sizing: border-box;
+             background: black;
          }
          .iiif-crop-top-drag-handle {
              position:absolute;
-             top:0;
+             top:-7px;
              width: 100%;
-             height: 15px;
-             cursor: n-resize;
+             height: 14px;
+             cursor: ns-resize;
          }
          .iiif-crop-bottom-drag-handle {
              position:absolute;
-             bottom:0;
+             bottom:-7px;
              width: 100%;
-             height: 15px;
-             cursor: s-resize;
+             height: 14px;
+             cursor: ns-resize;
          }
          .iiif-crop-left-drag-handle {
              position:absolute;
-             left:0;
-             width: 15px;
+             left:-7px;
+             width: 14px;
              height: 100%;
-             cursor: w-resize;
+             cursor: ew-resize;
          }
          .iiif-crop-right-drag-handle {
              position:absolute;
-             right:0;
-             width: 15px;
+             right:-7px;
+             width: 14px;
              height: 100%;
-             cursor: w-resize;
+             cursor: ew-resize;
          }
          .iiif-crop-top-left-drag-node {
              position:absolute;
-             top:0;
-             left:0;
-             width: 15px;
-             height: 15px;
+             top:-6px;
+             left:-6px;
              cursor: nw-resize;
          }
          .iiif-crop-top-right-drag-node {
              position:absolute;
-             top:0;
-             right:0;
-             width: 15px;
-             height: 15px;
+             top:-6px;
+             right:-6px;
              cursor: ne-resize;
          }
          .iiif-crop-bottom-left-drag-node {
              position:absolute;
-             bottom:0;
-             left:0;
-             width: 15px;
-             height: 15px;
-             cursor: se-resize;
+             bottom:-6px;
+             left:-6px;
+             cursor: sw-resize;
          }
          .iiif-crop-bottom-right-drag-node {
              position:absolute;
-             bottom:0;
-             right:0;
-             width: 15px;
-             height: 15px;
-             cursor: sw-resize;
+             bottom:-6px;
+             right:-6px;
+             cursor: se-resize;
          }
         </style>
     </head>
     <body>
-        <!-- <div class="iiif-crop-tracker">
-             <div class="iiif-crop-top-drag-handle">
-             </div>
-             <div class="iiif-crop-right-drag-handle">
-             </div>
-             <div class="iiif-crop-bottom-drag-handle">
-             </div>
-             <div class="iiif-crop-left-drag-handle">
-             </div>
-             <div class="iiif-crop-top-left-drag-node">
-             </div>
-             <div class="iiif-crop-top-right-drag-node">
-             </div>
-             <div class="iiif-crop-bottom-right-drag-node">
-             </div>
-             <div class="iiif-crop-bottom-left-drag-node">
-             </div>
-           --></div>
         <div class="container">
-            <h1>IIIF OpenSeadragon Cropping Tool</h1>
+            <h1 class="pageTitle">IIIF OpenSeadragon Cropping Tool</h1>
             <p>
                 Include this script along with OpenSeadragon and
                 a plugin will be added allowing you to wrap an
                 OpenSeadragon canvas with a cropping widget.
             </p>
-            <div id="osd-container"></div>
+            <div class="button-container">
+                <button class="disable">Disable Cropper</button>
+                <button class="getRegion">Get Region (url)</button>
+                <button class="getRegion">Get Region (Array)</button>
+                <button class="lockAspectRatio">Lock Aspect Ratio</button>
+                <button class="changeRegion">Random Selection</button>
+            </div>
+            <div id="osdCanvas1" class="osd-container"></div>
         </div>
         <script src='../node_modules/jquery-jcrop/js/jquery.min.js'></script>
         <script src='js/openseadragon.js'></script>
         <script src='../dist/iiif-osd-crop.js'></script>
         <script>
          var osdCanvas = new OpenSeadragon({
-             id: 'osd-container',
+             id: 'osdCanvas1',
              preserveViewport: true,
              showNavigationControl: false,
              constrainDuringPan: true,
+             visibilityRatio:0.8,
              tileSources:['https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/info.json']
-
          });
 
+
          osdCanvas.iiifCrop();
+         $('.disable').click(function() {
+             $(this).toggleClass('.enable');
+             $(this).text('Enable Cropper');
+             osdCanvas.cropper.disable();
+         });
+         $('.enable').click(function() {
+             $(this).toggleClass('.disable');
+             $(this).text('Disable Cropper');
+             osdCanvas.cropper.enable();
+         });
+
+         $('.getRegion').click(function() {
+             alert(osdCanvas.cropper.getIiifSelection);
+         });
+
+         $('.lockAspectRatio').click(function() {
+             osdCanvas.cropper.lockAspectRatio();
+         });
+         $('.unlockAspectRatio').click(function() {
+             osdCanvas.cropper.unlockAspectRatio();
+         });
+
+         $('.changeRegion').click(function() {
+         });
 
         </script>
     </body>
