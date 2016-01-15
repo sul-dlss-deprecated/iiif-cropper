@@ -15,10 +15,6 @@ var IiifCrop = function(options) {
 
   var dispatcher = ee();
 
-  dispatcher.on('derp', function() {
-    console.log();
-  });
-
   var actions = {
     enable: 'enable',
     disable: 'disable',
@@ -43,7 +39,7 @@ var IiifCrop = function(options) {
   var renderer = new SelectionDOMRenderer(options, state, dispatcher);
 
   this.cropper = {
-    disable: dispatcher.emit(),
+    disable: function() { state.enabled = false; },
     getState: function() { return state }
   };
 };

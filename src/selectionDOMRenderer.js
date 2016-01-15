@@ -32,7 +32,6 @@ var SelectionDOMRenderer = function(options, state) {
   }
 
   function update(selectionBox, state) {
-    console.log(state);
     options.osd.updateOverlay(selectionBox, new OpenSeadragon.Rect(state.x, state.y, state.width, state.height));
   }
 
