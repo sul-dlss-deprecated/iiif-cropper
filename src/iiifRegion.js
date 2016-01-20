@@ -2,7 +2,7 @@
 
 var ee = require('event-emitter');
 
-var IiifRegion = function(options) {
+var IiifRegion = function(options, dispatcher) {
   this.serviceBase = options.serviceBase;
   this.x = 0 || options.x;
   this.y = 0 || options.y;
@@ -11,6 +11,7 @@ var IiifRegion = function(options) {
   this.rotation = 0 || options.rotation;
   this.scale = options.scale;
   this.quality = options.quality;
+  // aspectRatioLocked
 
   // var url = serviceBase + '/' + identifier + '/' + x + y + width + height + size + mirroring + rotation + quality + '.jpg';
 };

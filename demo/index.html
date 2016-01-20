@@ -40,9 +40,15 @@
              from "spreading", and extends a very long way.
              */
              box-shadow: 0 0 0 10000px rgba(0,0,0,0.5);
-             height: 150px;
-             width: 200px;
              cursor: move;
+             transition: opacity 0.2s ease-out;
+             opacity:1;
+             pointerevents:none;
+         }
+         .iiif-crop-selection.disabled {
+             transition: opacity 0.2s ease-out;
+             opacity:0;
+             pointerevents:none;
          }
          .iiif-crop-dragNode {
              border:2px solid white;
@@ -115,7 +121,7 @@
                 OpenSeadragon canvas with a cropping widget.
             </p>
             <div class="button-container">
-                <button class="disable">Disable Cropper</button>
+                <button class="toggleCropperEnabled" data-enabled="true"">Disable Cropper</button>
                 <button class="getRegion">Get Region (url)</button>
                 <button class="getRegion">Get Region (Array)</button>
                 <button class="lockAspectRatio">Lock Aspect Ratio</button>
@@ -132,21 +138,30 @@
              preserveViewport: true,
              showNavigationControl: false,
              constrainDuringPan: true,
-             visibilityRatio:0.8,
              tileSources:['https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/info.json']
          });
 
-
          osdCanvas.iiifCrop();
-         $('.disable').click(function() {
-             $(this).toggleClass('.enable');
-             $(this).text('Enable Cropper');
-             osdCanvas.cropper.disable();
-         });
-         $('.enable').click(function() {
-             $(this).toggleClass('.disable');
-             $(this).text('Disable Cropper');
-             osdCanvas.cropper.enable();
+
+         $('.toggleCropperEnabled').on('click', function() {
+             var enabled = $(this).data('enabled');
+
+             if (enabled) {
+                 $(this).data('enabled', false);
+                 $('.iiif-crop-selection').addClass('disabled');
+                 $(this).text('Disable Cropper');
+             } else {
+                 $(this).data('enabled', true);
+                 $('.iiif-crop-selection').removeClass('disabled');
+                 $(this).text('Enable Cropper');
+             }
+
+             /*              $('.iiif-crop-selection').addClass('disabled'); */
+             /*              osdCanvas.cropper.disable(); */
+
+             /*              console.log('enabling'); */
+             /*              $('.iiif-crop-selection').removeClass('disabled'); */
+             /*              osdCanvas.cropper.enable(); */
          });
 
          $('.getRegion').click(function() {

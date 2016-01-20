@@ -2,13 +2,15 @@
 var hasClass = require('./hasClass');
 
 var SelectionDOMRenderer = function(options, state) {
-  var selectionBox;
+  var selectionBox,
+      currentDragHandle;
+
   var state = {
     enabled: true,
-    x: 0,
-    y: 0,
-    width: 0.3,
-    height: 0.4
+    x: 50,
+    y: 44,
+    width: 200,
+    height: 100
   }
 
   function render(state) {
@@ -20,19 +22,19 @@ var SelectionDOMRenderer = function(options, state) {
 
     if (!selectionBox === true) {
       selectionBox = buildSelectionBox();
-      options.osd.addOverlay({
-        element: selectionBox,
-        location: new OpenSeadragon.Rect(state.x, state.y, state.width, state.height)
-      });
-
+      options.osd.canvas.appendChild(selectionBox);
       bindSelectionEvents(selectionBox);
+      update(selectionBox, state);
     } else {
       update(selectionBox, state);
     }
   }
 
   function update(selectionBox, state) {
-    options.osd.updateOverlay(selectionBox, new OpenSeadragon.Rect(state.x, state.y, state.width, state.height));
+    selectionBox.style.left = state.x;
+    selectionBox.style.top = state.y;
+    selectionBox.style.width = state.width;
+    selectionBox.style.height = state.height;
   }
 
   function buildSelectionBox() {
@@ -84,42 +86,48 @@ var SelectionDOMRenderer = function(options, state) {
     selectionBox.addEventListener('mousedown', handleDragStart);
     selectionBox.addEventListener('mouseup', function(e) {
       e.stopPropagation();
-      selectionBox.removeEventListener('mousemove', handleSelectionDrag);
+      currentDragHandle = undefined;
+      options.osd.canvas.removeEventListener('mousemove', handleSelectionDrag);
     });
   }
 
   function handleDragStart(event) {
     event.stopPropagation();
-    selectionBox.addEventListener('mousemove', handleSelectionDrag);
+    currentDragHandle = event.target;
+    options.osd.canvas.addEventListener('mousemove', handleSelectionDrag);
   }
 
   function handleSelectionDrag(event) {
     event.stopPropagation();
+    console.log(event);
 
-    var mousePosition = options.osd.viewport.windowToViewportCoordinates(OpenSeadragon.getMousePosition(event)),
-        newState;
-
-    if (hasClass(event.target, 'iiif-crop-selection')) {
-      newState = {
-        x: mousePosition.x - state.width/2,
-        y: mousePosition.y - state.height/2,
-        width: state.width,
-        height: state.height
-      };
-
-      state = newState;
+    // var mousePosition = options.osd.viewport.windowToViewportCoordinates(OpenSeadragon.getMousePosition(event)),
+    var mousePosition = {
+      x: event.clientX - options.osd.canvas.getBoundingClientRect().left,
+      y: event.clientY - options.osd.canvas.getBoundingClientRect().top,
     };
-    if (hasClass(event.target, 'iiif-crop-top-drag-handle')) {
-      newState = {
+
+    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
+      state.x = mousePosition.x - state.width/2;
+      state.y = mousePosition.y - state.height/2;
+      state.width = state.width;
+      state.height = state.height;
+    };
+
+    if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
+      var newState = {
         x: state.x,
         y: mousePosition.y,
         width: state.width,
         height: state.height + (state.y - mousePosition.y)
       };
 
-      state = newState;
+      state.x = newState.x;
+      state.y = newState.y;
+      state.width = newState.width;
+      state.height = newState.height;
     };
-    if (hasClass(event.target, 'iiif-crop-right-drag-handle')) {
+    if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
       newState = {
         x: state.x,
         y: state.y,
@@ -127,9 +135,12 @@ var SelectionDOMRenderer = function(options, state) {
         height: state.height
       };
 
-      state = newState;
+      state.x = newState.x;
+      state.y = newState.y;
+      state.width = newState.width;
+      state.height = newState.height;
     };
-    if (hasClass(event.target, 'iiif-crop-bottom-drag-handle')) {
+    if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
       newState = {
         x: state.x,
         y: state.y,
@@ -137,60 +148,73 @@ var SelectionDOMRenderer = function(options, state) {
         height: state.height + (mousePosition.y - (state.height + state.y))
       };
 
-      state = newState;
+      state.x = newState.x;
+      state.y = newState.y;
+      state.width = newState.width;
+      state.height = newState.height;
     };
-    if (hasClass(event.target, 'iiif-crop-left-drag-handle')) {
+    if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
       newState = {
         x: mousePosition.x,
         y: state.y,
         width: state.width + (state.x - mousePosition.x),
         height: state.height
       };
-
-      state = newState;
+      state.x = newState.x;
+      state.y = newState.y;
+      state.width = newState.width;
+      state.height = newState.height;
     };
-    if (hasClass(event.target, 'iiif-crop-top-left-drag-node')) {
+    if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
       newState = {
         x: mousePosition.x,
         y: mousePosition.y,
         width: state.width + (state.x - mousePosition.x),
         height: state.height + (state.y - mousePosition.y)
       };
-
-      state = newState;
+      state.x = newState.x;
+      state.y = newState.y;
+      state.width = newState.width;
+      state.height = newState.height;
     };
-    if (hasClass(event.target, 'iiif-crop-top-right-drag-node')) {
+    if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
       newState = {
         x: state.x,
         y: mousePosition.y,
         width: state.width + (mousePosition.x - (state.x + state.width)),
         height: state.height + (state.y - mousePosition.y)
       };
-
-      state = newState;
+      state.x = newState.x;
+      state.y = newState.y;
+      state.width = newState.width;
+      state.height = newState.height;
     };
-    if (hasClass(event.target, 'iiif-crop-bottom-right-drag-node')) {
+    if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
       newState = {
         x: state.x,
         y: state.y,
         width: state.width + (mousePosition.x - (state.x + state.width)),
         height: state.height + (mousePosition.y - (state.y + state.height))
       };
-
-      state = newState;
+      state.x = newState.x;
+      state.y = newState.y;
+      state.width = newState.width;
+      state.height = newState.height;
     };
-    if (hasClass(event.target, 'iiif-crop-bottom-left-drag-node')) {
+    if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
       newState = {
         x: mousePosition.x,
         y: state.y,
         width: state.width + (state.x - mousePosition.x),
         height: state.height + (mousePosition.y - (state.height + state.y))
       };
-
-      state = newState;
+      state.x = newState.x;
+      state.y = newState.y;
+      state.width = newState.width;
+      state.height = newState.height;
     };
 
-    update(selectionBox, newState);
+    render(state);
   }
 
   render(state);
