@@ -13,9 +13,17 @@ var IiifCrop = function(options) {
   if (!options) { var options = {}; }
   options.osd = this;
 
+  // options: {
+  // region: [] || {} // Gives selection in image coordinates
+  // animate: true || false // Tells whether to smoothly animate the region when it is forcibly set
+  // enabled: true || false // Should the cropper tool be visible
+  // aspectRatioLocked: true || false // Prevents the region from changing shape
+  // scaleWithCanvas: true || false // false by default, determines how the user selects region
+  //}
+
   var dispatcher = ee();
 
-  var actions = {
+  var actionConstants = {
     enable: 'enable',
     disable: 'disable',
     expandUp: 'expandUp',
@@ -28,19 +36,36 @@ var IiifCrop = function(options) {
     expandUpAndLeft: 'expandUpAndLeft',
     setRegion: 'setRegion',
     lockAspectRatio: 'lockAspectRatio',
-    unlockAspectRatio: 'lockAspectRatio'
+    unlockAspectRatio: 'lockAspectRatio',
+    enableAnimation: 'enableAnimation',
+    disableAnimation: 'disableAnimation',
+    enableScaling: 'enableScaling',
+    disableScaling: 'disableScaling'
   };
 
-  var state = {
+  var settingsStore = {
     enabled: options.enabled || true,
-    selection: new IiifRegion(options)
+    aspectRatioLocked: options.aspectRatioLocked || false,
+    animationEnabled: options.animationEnabled || true
   };
 
-  var renderer = new SelectionDOMRenderer(options, state, dispatcher);
+  var regionStore = new IiifRegion(options, dispatcher);
+
+  var renderer = new SelectionDOMRenderer(options, regionStore, dispatcher);
 
   this.cropper = {
-    disable: function() { state.enabled = false; },
-    getState: function() { return state }
+    enable: function() {},
+    disable: function() { dispatcher.emit('disable') },
+    getIiifSelection: function() { return  },
+    getRegion: function() {},
+    setRegion: function() {},
+    lockAspectRatio: function() {},
+    unlockAspectRatio: function(){},
+    enableAnimation:function() {},
+    disableAnimation: function() {},
+    enableScaling: function() {},
+    disableScaling: function() {},
+    dispatcher: dispatcher
   };
 };
 

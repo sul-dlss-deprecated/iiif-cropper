@@ -4,6 +4,12 @@
   "description": "A IIIF image cropping library",
   "author": "Drew Winget",
   "license": "Apache 2.0",
+  "keywords": "iiif, crop, jcrop, openseadragon, zooming",
+  "repository" :
+  {
+    "type" : "git",
+    "url" : "https://github.com/sul-dlss/iiif-cropper.git"
+  },
   "engines": {
     "node": ">= 0.10.0"
   },
