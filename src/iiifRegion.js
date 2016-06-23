@@ -46,8 +46,8 @@ IiifRegion.prototype = {
   x: function() {}, // getter/setter
   y: function() {}, // getter/setter
   width: function() {}, // getter/setter
-  height: function() {}, // getter/setter
-  size: function() {} // getter/setter
+  height: function() {},
+  getRegion: function() {}
 };
 
 module.exports = IiifRegion;

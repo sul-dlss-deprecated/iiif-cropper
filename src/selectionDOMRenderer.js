@@ -81,11 +81,14 @@ var SelectionDOMRenderer = function(options, state) {
     // the mouseup and mousedown events.
     selectionBox.addEventListener('click', function(e) {
       e.stopPropagation();
+      e.preventDefault();
     });
 
     selectionBox.addEventListener('mousedown', handleDragStart);
     selectionBox.addEventListener('mouseup', function(e) {
       e.stopPropagation();
+      e.preventDefault();
+
       currentDragHandle = undefined;
       options.osd.canvas.removeEventListener('mousemove', handleSelectionDrag);
     });
@@ -93,13 +96,15 @@ var SelectionDOMRenderer = function(options, state) {
 
   function handleDragStart(event) {
     event.stopPropagation();
+    event.preventDefault();
+
     currentDragHandle = event.target;
     options.osd.canvas.addEventListener('mousemove', handleSelectionDrag);
   }
 
   function handleSelectionDrag(event) {
     event.stopPropagation();
-    console.log(event);
+    event.preventDefault();
 
     // var mousePosition = options.osd.viewport.windowToViewportCoordinates(OpenSeadragon.getMousePosition(event)),
     var mousePosition = {

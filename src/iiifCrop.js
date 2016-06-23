@@ -55,7 +55,7 @@ var IiifCrop = function(options) {
 
   this.cropper = {
     enable: function() {},
-    disable: function() { state.enabled = false; },
+    disable: function() { dispatcher.emit('disable') },
     getIiifSelection: function() { return  },
     getRegion: function() {},
     setRegion: function() {},
