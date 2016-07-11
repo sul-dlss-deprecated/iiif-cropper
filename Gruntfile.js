@@ -6,7 +6,6 @@ module.exports = function(grunt) {
   grunt.initConfig({
     // Metadata.
     pkg: grunt.file.readJSON('package.json'),
-    jshintrc: grunt.file.read('.jshintrc'),
     banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
       '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
       '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' +
@@ -35,7 +34,10 @@ module.exports = function(grunt) {
       }
     },
     jshint: {
-      options: '<%= jshintrc %>',
+      options: {
+        jshintrc: '<%= baseDir %>.jshintrc',
+        reporterOutput: '',
+      },
       gruntfile: {
         src: 'Gruntfile.js'
       },
