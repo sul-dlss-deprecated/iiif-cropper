@@ -9,5 +9,5 @@ npm install
 
 ```bash
 // Run dev server
-grunt connect watch
+grunt serve
 ```
