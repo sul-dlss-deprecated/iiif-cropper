@@ -28,6 +28,7 @@
     "webpack-dev-server": "^1.14.0"
   },
   "dependencies": {
-    "openseadragon": "^2.1.0"
+    "openseadragon": "^2.1.0",
+    "jquery-jcrop": "^0.9.13"
   }
 }
