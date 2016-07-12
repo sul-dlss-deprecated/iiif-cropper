@@ -2,7 +2,7 @@
 
 var ee = require('event-emitter'),
     IiifRegion = require('./iiifRegion.js'),
-    SelectionDOMRenderer = require('./selectionDOMRenderer.js'),
+    SelectionDOMRenderer = require('./selectionDOMRenderer.js')
 
 // This is a factory, not a constructor.
 // The API is designed so that it is only
