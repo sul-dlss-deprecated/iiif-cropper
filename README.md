@@ -17,11 +17,5 @@ grunt serve
 
 ```bash
 // build the project and run tests
-grunt
-```
-or
-
-```bash
-// run tests
-grunt test
+grunt karma
 ```

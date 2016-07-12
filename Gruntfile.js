@@ -43,12 +43,9 @@ module.exports = function(grunt) {
         src: ['src/**/*.js', 'test/**/*.js']
       }
     },
-    jasmine: {
-      src: 'dist/**/*.js',
-      options: {
-        specs: 'test/src/**/*Test.js',
-        vendor: './node_modules/openseadragon/build/openseadragon/openseadragon.min.js',
-        outfile: 'test/_SpecRunner.html'
+    karma: {
+      unit: {
+        configFile: 'karma.conf.js'
       }
     },
     watch: {
@@ -59,19 +56,19 @@ module.exports = function(grunt) {
       gruntfile: {
         files: '<%= jshint.gruntfile.src %>',
         tasks: ['jshint:gruntfile']
-      }
+      },
     }
   });
 
   // These plugins provide necessary tasks.
-  grunt.loadNpmTasks('grunt-contrib-jasmine');
+  grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-webpack');
 
   // Default task.
-  grunt.registerTask('test', ['jshint', 'jasmine']);
+  grunt.registerTask('test', ['jshint']);
   // grunt.registerTask('cover', []);
   grunt.registerTask('serve', ['webpack', 'connect', 'watch']);
   grunt.registerTask('default', ['jshint', 'webpack', 'test']);

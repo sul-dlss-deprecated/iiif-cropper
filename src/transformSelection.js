@@ -10,8 +10,8 @@ TransformSelection.prototype = {
   // Transform a web coordinate into an image coordinate
   coordinateForPixel: function(x, y) {
     var pixel = new OpenSeadragon.Point(x, y);
-    var view_point = osdCanvas.viewport.pointFromPixel(pixel);
-    var image_point = osdCanvas.viewport.viewportToImageCoordinates(view_point)
+    var view_point = this.osdCanvas.viewport.pointFromPixel(pixel);
+    var image_point = this.osdCanvas.viewport.viewportToImageCoordinates(view_point)
     // For some reason these points are floats. Convert to ints:
     return { x: Math.round(image_point.x), y: Math.round(image_point.y) }
   },
@@ -26,7 +26,7 @@ TransformSelection.prototype = {
                             y:           top_left.y,
                             height:      bottom_right.y - top_left.y,
                             width:       bottom_right.x - top_left.x,
-                            serviceBase: osdCanvas.source['@id']
+                            serviceBase: this.osdCanvas.source['@id']
                            });
   }
 }
