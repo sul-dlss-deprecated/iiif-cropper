@@ -9,7 +9,13 @@ var ee = require('event-emitter'),
 // callable from the OSD Viewer instance,
 // so that this will always be that instance.
 var IiifCrop = function(options) {
-  if (!options) { var options = {}; }
+  if (!options) { var options = { enabled: true,
+                                  x: 50,
+                                  y: 44,
+                                  width: 200,
+                                  height: 100
+                                };
+  }
   options.osd = this;
 
   // options: {

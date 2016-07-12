@@ -5,14 +5,6 @@ var SelectionDOMRenderer = function(options, state) {
   var selectionBox,
       currentDragHandle;
 
-  var state = {
-    enabled: true,
-    x: 50,
-    y: 44,
-    width: 200,
-    height: 100
-  }
-
   function render(state) {
 
     if (!state.enabled) {

@@ -11,6 +11,7 @@ var IiifRegion = function(options, dispatcher) {
   this.rotation = 0 || options.rotation;
   this.scale = options.scale;
   this.quality = options.quality;
+  this.enabled = options.enabled;
   // aspectRatioLocked
 
   // var url = serviceBase + '/' + identifier + '/' + x + y + width + height + size + mirroring + rotation + quality + '.jpg';
