@@ -8,17 +8,14 @@ var IiifRegion = function(options, dispatcher) {
   this.y = 0 || options.y;
   this.width = 0 || options.width;
   this.height = 0 || options.height;
-  this.rotation = 0 || options.rotation;
-  this.scale = options.scale;
-  this.quality = options.quality;
-  this.enabled = options.enabled;
-  // aspectRatioLocked
-
-  // var url = serviceBase + '/' + identifier + '/' + x + y + width + height + size + mirroring + rotation + quality + '.jpg';
+  this.rotation = options.rotation || 0;
+  this.scale = options.scale || 'full';
+  this.quality = options.quality || 'default';
+  this.format = options.format || 'jpg';
 };
 
-// The whole point of this component is to
-// be able to extract a iiif url for a cropped
+// The purpose of this component is to
+// extract a IIIF url for a cropped
 // region of an image, from an OpenSeadragon
 // instance.
 
@@ -41,14 +38,18 @@ var IiifRegion = function(options, dispatcher) {
 // the region.
 
 IiifRegion.prototype = {
-  objectFromUrl: function() {},
-  tilesourceFromInfoJson: function() {},
-  urlFromObject: function() {},
   x: function() {}, // getter/setter
   y: function() {}, // getter/setter
   width: function() {}, // getter/setter
   height: function() {},
-  getRegion: function() {}
+
+  getRegion: function() {
+    return [this.x, this.y, this.width, this.height];
+  },
+
+  getUrl: function() {
+    return this.serviceBase + '/' + this.getRegion() + '/' + this.scale + '/' + this.rotation + '/' + this.quality + '.' + this.format;
+  }
 };
 
 module.exports = IiifRegion;

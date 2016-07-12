@@ -1,8 +1,9 @@
 'use strict';
 
-var ee = require('event-emitter'),
-    IiifRegion = require('./iiifRegion.js'),
-    SelectionDOMRenderer = require('./selectionDOMRenderer.js')
+var ee =                   require('event-emitter'),
+    SelectionDOMRenderer = require('./selectionDOMRenderer.js'),
+    TransformSelection =   require('./transformSelection.js'),
+    Selection =            require('./selection.js') 
 
 // This is a factory, not a constructor.
 // The API is designed so that it is only
@@ -54,14 +55,19 @@ var IiifCrop = function(options) {
     animationEnabled: options.animationEnabled || true
   };
 
-  var regionStore = new IiifRegion(options, dispatcher);
+  var regionStore = new Selection(options, dispatcher);
 
   var renderer = new SelectionDOMRenderer(options, regionStore, dispatcher);
 
   this.cropper = {
     enable: function() {},
     disable: function() { dispatcher.emit('disable') },
-    getIiifSelection: function() { return  },
+
+    // Maps the selected area into an IiifRegion
+    getIiifSelection: function() {
+      return new TransformSelection(osdCanvas).toImageRegion(regionStore);
+    },
+
     getRegion: function() {},
     setRegion: function() {},
     lockAspectRatio: function() {},
