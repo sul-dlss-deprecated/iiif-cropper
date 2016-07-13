@@ -137,9 +137,12 @@
 
 	    // Maps the selected area into an IiifRegion
 	    getIiifSelection: function() {
-	      return new TransformSelection(osdCanvas).toImageRegion(regionStore);
+	      return getTransformer().toImageRegion(regionStore);
 	    },
 
+	    getTransformer: function() {
+	      return new TransformSelection(options.osd)
+	    },
 	    getRegion: function() {},
 	    setRegion: function() {},
 	    lockAspectRatio: function() {},
