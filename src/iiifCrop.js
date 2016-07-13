@@ -65,7 +65,7 @@ var IiifCrop = function(options) {
 
     // Maps the selected area into an IiifRegion
     getIiifSelection: function() {
-      return getTransformer().toImageRegion(regionStore);
+      return this.getTransformer().toImageRegion(regionStore);
     },
 
     getTransformer: function() {
