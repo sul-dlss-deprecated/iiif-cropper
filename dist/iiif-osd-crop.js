@@ -72,9 +72,10 @@
 
 	'use strict';
 
-	var ee = __webpack_require__(2),
-	    IiifRegion = __webpack_require__(17),
-	    SelectionDOMRenderer = __webpack_require__(18)
+	var ee =                   __webpack_require__(2),
+	    SelectionDOMRenderer = __webpack_require__(17),
+	    TransformSelection =   __webpack_require__(19),
+	    Selection =            __webpack_require__(21) 
 
 	// This is a factory, not a constructor.
 	// The API is designed so that it is only
@@ -126,14 +127,19 @@
 	    animationEnabled: options.animationEnabled || true
 	  };
 
-	  var regionStore = new IiifRegion(options, dispatcher);
+	  var regionStore = new Selection(options, dispatcher);
 
 	  var renderer = new SelectionDOMRenderer(options, regionStore, dispatcher);
 
 	  this.cropper = {
 	    enable: function() {},
 	    disable: function() { dispatcher.emit('disable') },
-	    getIiifSelection: function() { return  },
+
+	    // Maps the selected area into an IiifRegion
+	    getIiifSelection: function() {
+	      return new TransformSelection(osdCanvas).toImageRegion(regionStore);
+	    },
+
 	    getRegion: function() {},
 	    setRegion: function() {},
 	    lockAspectRatio: function() {},
@@ -549,67 +555,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-
-	var ee = __webpack_require__(2);
-
-	var IiifRegion = function(options, dispatcher) {
-	  this.serviceBase = options.serviceBase;
-	  this.x = 0 || options.x;
-	  this.y = 0 || options.y;
-	  this.width = 0 || options.width;
-	  this.height = 0 || options.height;
-	  this.rotation = 0 || options.rotation;
-	  this.scale = options.scale;
-	  this.quality = options.quality;
-	  this.enabled = options.enabled;
-	  // aspectRatioLocked
-
-	  // var url = serviceBase + '/' + identifier + '/' + x + y + width + height + size + mirroring + rotation + quality + '.jpg';
-	};
-
-	// The whole point of this component is to
-	// be able to extract a iiif url for a cropped
-	// region of an image, from an OpenSeadragon
-	// instance.
-
-	// So the core data structure is just the region
-	// selected. The region must be able to be
-	// be retrieved as a url with a specified
-	// size, rotation, etc.
-
-	// When the region is updated, the dom
-	// element representing the selection
-	// must be updated.
-
-	// There are 8 ways to transform the selection
-	// through the UI, and 9 ways to transform
-	// the selection total (sizing).
-
-	// The programmer must be able to listen for
-	// changes in the dimensions, the creation
-	// of the region, and the cancelation of
-	// the region.
-
-	IiifRegion.prototype = {
-	  objectFromUrl: function() {},
-	  tilesourceFromInfoJson: function() {},
-	  urlFromObject: function() {},
-	  x: function() {}, // getter/setter
-	  y: function() {}, // getter/setter
-	  width: function() {}, // getter/setter
-	  height: function() {},
-	  getRegion: function() {}
-	};
-
-	module.exports = IiifRegion;
-
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	var hasClass = __webpack_require__(19);
+	var hasClass = __webpack_require__(18);
 
 	var SelectionDOMRenderer = function(options, state) {
 	  var selectionBox,
@@ -831,7 +777,7 @@
 
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -842,6 +788,150 @@
 	};
 
 	module.exports = hasClass;
+
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var IiifRegion = __webpack_require__(20)
+
+	var TransformSelection = function(osdCanvas) {
+	  this.osdCanvas = osdCanvas;
+	}
+
+	TransformSelection.prototype = {
+	  // Transform a web coordinate into an image coordinate
+	  coordinateForPixel: function(x, y) {
+	    var pixel = new OpenSeadragon.Point(x, y);
+	    var view_point = this.osdCanvas.viewport.pointFromPixel(pixel);
+	    var image_point = this.osdCanvas.viewport.viewportToImageCoordinates(view_point)
+	    // For some reason these points are floats. Convert to ints:
+	    return { x: Math.round(image_point.x), y: Math.round(image_point.y) }
+	  },
+
+	  toImageRegion: function(selection) {
+	    var x = Math.round(selection.x);
+	    var y = Math.round(selection.y);
+	    var top_left = this.coordinateForPixel(x, y);
+	    var bottom_right = this.coordinateForPixel(x + selection.width, y + selection.height);
+
+	    return new IiifRegion({ x:           top_left.x,
+	                            y:           top_left.y,
+	                            height:      bottom_right.y - top_left.y,
+	                            width:       bottom_right.x - top_left.x,
+	                            serviceBase: this.osdCanvas.source['@id']
+	                           });
+	  }
+	}
+
+	module.exports = TransformSelection;
+
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var ee = __webpack_require__(2);
+
+	var IiifRegion = function(options, dispatcher) {
+	  this.serviceBase = options.serviceBase;
+	  this.x = 0 || options.x;
+	  this.y = 0 || options.y;
+	  this.width = 0 || options.width;
+	  this.height = 0 || options.height;
+	  this.rotation = options.rotation || 0;
+	  this.scale = options.scale || 'full';
+	  this.quality = options.quality || 'default';
+	  this.format = options.format || 'jpg';
+	};
+
+	// The purpose of this component is to
+	// extract a IIIF url for a cropped
+	// region of an image, from an OpenSeadragon
+	// instance.
+
+	// So the core data structure is just the region
+	// selected. The region must be able to be
+	// be retrieved as a url with a specified
+	// size, rotation, etc.
+
+	// When the region is updated, the dom
+	// element representing the selection
+	// must be updated.
+
+	// There are 8 ways to transform the selection
+	// through the UI, and 9 ways to transform
+	// the selection total (sizing).
+
+	// The programmer must be able to listen for
+	// changes in the dimensions, the creation
+	// of the region, and the cancelation of
+	// the region.
+
+	IiifRegion.prototype = {
+	  x: function() {}, // getter/setter
+	  y: function() {}, // getter/setter
+	  width: function() {}, // getter/setter
+	  height: function() {},
+
+	  getRegion: function() {
+	    return [this.x, this.y, this.width, this.height];
+	  },
+
+	  getUrl: function() {
+	    return this.serviceBase + '/' + this.getRegion() + '/' + this.scale + '/' + this.rotation + '/' + this.quality + '.' + this.format;
+	  }
+	};
+
+	module.exports = IiifRegion;
+
+
+/***/ },
+/* 21 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var Selection = function(options, dispatcher) {
+	  this.x = 0 || options.x;
+	  this.y = 0 || options.y;
+	  this.width = 0 || options.width;
+	  this.height = 0 || options.height;
+	  this.enabled = options.enabled;
+	  // aspectRatioLocked
+	};
+
+	// This models the selected region.
+
+	// When the region is updated, the dom
+	// element representing the selection
+	// must be updated.
+
+	// There are 8 ways to transform the selection
+	// through the UI, and 9 ways to transform
+	// the selection total (sizing).
+
+	// The programmer must be able to listen for
+	// changes in the dimensions, the creation
+	// of the region, and the cancelation of
+	// the region.
+
+	Selection.prototype = {
+	  x: function() {}, // getter/setter
+	  y: function() {}, // getter/setter
+	  width: function() {}, // getter/setter
+	  height: function() {},
+	  getRegion: function() {
+	    return this.x + ',' + this.y + ',' + this.width + ',' + this.height;
+	  },
+	};
+
+	module.exports = Selection;
 
 
 /***/ }

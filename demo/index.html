@@ -122,7 +122,7 @@
             </p>
             <div class="button-container">
                 <button class="toggleCropperEnabled" data-enabled="true">Disable Cropper</button>
-                <button class="getRegion">Get Region (url)</button>
+                <button class="getUrl">Get Region (url)</button>
                 <button class="getRegion">Get Region (Array)</button>
                 <button class="lockAspectRatio">Lock Aspect Ratio</button>
                 <button class="changeRegion">Random Selection</button>
@@ -164,8 +164,13 @@
              /*              osdCanvas.cropper.enable(); */
          });
 
+         $('.getUrl').click(function() {
+           var popup = window.open("about:blank", "_blank");
+           popup.location = osdCanvas.cropper.getIiifSelection().getUrl();
+         });
+
          $('.getRegion').click(function() {
-             alert(osdCanvas.cropper.getIiifSelection);
+             alert(osdCanvas.cropper.getIiifSelection().getRegion());
          });
 
          $('.lockAspectRatio').click(function() {
