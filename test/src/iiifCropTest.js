@@ -18,7 +18,23 @@ describe("iiifCrop API Layer (and DOM rendering)", function() {
     osd.iiifCrop();
   });
 
-  it("passes the canvas to the transformer", function() {
-    expect(osd.cropper.getTransformer().osdCanvas).toEqual(osd)
+  describe("getTransformer", function() {
+    it("passes the canvas to the transformer", function() {
+      expect(osd.cropper.getTransformer().osdCanvas).toEqual(osd)
+    });
+  });
+
+  describe("getIiifSelection", function() {
+    var transformer = { toImageRegion: function(region) { } }
+
+    beforeEach(function () {
+      spyOn(transformer, 'toImageRegion')
+      spyOn(osd.cropper, 'getTransformer').and.returnValue(transformer)
+    });
+
+    it("passes the canvas to the transformer", function() {
+      osd.cropper.getIiifSelection()
+      expect(transformer.toImageRegion).toHaveBeenCalled()
+    });
   });
 });
