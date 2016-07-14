@@ -29,6 +29,12 @@ Selection.prototype = {
   y: function() {}, // getter/setter
   width: function() {}, // getter/setter
   height: function() {},
+  update: function(options) {
+    this.x = options.x;
+    this.y = options.y;
+    this.height = options.height;
+    this.width = options.width;
+  },
   getRegion: function() {
     return this.x + ',' + this.y + ',' + this.width + ',' + this.height;
   },

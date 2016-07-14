@@ -16,6 +16,7 @@ TransformSelection.prototype = {
     return { x: Math.round(image_point.x), y: Math.round(image_point.y) }
   },
 
+  // Map a rectangle defined in web coordinates to image coordinates
   toImageRegion: function(selection) {
     var x = Math.round(selection.x);
     var y = Math.round(selection.y);
@@ -28,6 +29,26 @@ TransformSelection.prototype = {
                             width:       bottom_right.x - top_left.x,
                             serviceBase: this.osdCanvas.source['@id']
                            });
+  },
+
+  pixelForCoordinate: function(x, y) {
+    var view_coord = this.osdCanvas.viewport.imageToViewportCoordinates(x, y);
+    return this.osdCanvas.viewport.pixelFromPoint(view_coord);
+  },
+
+  // Map a rectangle defined in image coordinates to web coordinates
+  fromImageRegion: function(image_region) {
+    var x1 = image_region.x;
+    var y1 = image_region.y;
+    var x2 = image_region.x + image_region.width;
+    var y2 = image_region.y + image_region.height;
+    var top_left = this.pixelForCoordinate(x1, y1)
+    var bottom_right = this.pixelForCoordinate(x2, y2)
+    return { x:      top_left.x,
+             y:      top_left.y,
+             height: bottom_right.y - top_left.y,
+             width:  bottom_right.x - top_left.x,
+           };
   }
 }
 

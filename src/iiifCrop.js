@@ -58,6 +58,7 @@ var IiifCrop = function(options) {
   var regionStore = new Selection(options, dispatcher);
 
   var renderer = new SelectionDOMRenderer(options, regionStore, dispatcher);
+  renderer.update();
 
   this.cropper = {
     enable: function() {},
@@ -72,7 +73,15 @@ var IiifCrop = function(options) {
       return new TransformSelection(options.osd)
     },
     getRegion: function() {},
-    setRegion: function() {},
+
+    // Given image coordinates, put the crop region in the correct location.
+    setRegion: function(x, y, height, width) {
+      var rect =  { x: x, y: y, height: height, width: width };
+      var region = this.getTransformer().fromImageRegion(rect);
+      regionStore.update(region);
+      renderer.update();
+    },
+
     lockAspectRatio: function() {},
     unlockAspectRatio: function(){},
     enableAnimation:function() {},
