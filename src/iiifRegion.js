@@ -8,10 +8,6 @@ var IiifRegion = function(options, dispatcher) {
   this.y = 0 || options.y;
   this.width = 0 || options.width;
   this.height = 0 || options.height;
-  this.rotation = options.rotation || 0;
-  this.scale = options.scale || 'full';
-  this.quality = options.quality || 'default';
-  this.format = options.format || 'jpg';
 };
 
 // The purpose of this component is to
@@ -47,8 +43,13 @@ IiifRegion.prototype = {
     return [this.x, this.y, this.width, this.height];
   },
 
-  getUrl: function() {
-    return this.serviceBase + '/' + this.getRegion() + '/' + this.scale + '/' + this.rotation + '/' + this.quality + '.' + this.format;
+  getUrl: function(opts) {
+    opts = opts || {};
+    var rotation = opts.rotation || 0;
+    var scale = opts.scale || 'full';
+    var quality = opts.quality || 'default';
+    var format = opts.format || 'jpg';
+    return this.serviceBase + '/' + this.getRegion() + '/' + scale + '/' + rotation + '/' + quality + '.' + format;
   }
 };
 
