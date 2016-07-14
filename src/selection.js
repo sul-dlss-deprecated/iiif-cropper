@@ -5,8 +5,6 @@ var Selection = function(options, dispatcher) {
   this.y = 0 || options.y;
   this.width = 0 || options.width;
   this.height = 0 || options.height;
-  this.enabled = options.enabled;
-  // aspectRatioLocked
 };
 
 // This models the selected region.
@@ -24,14 +22,13 @@ var Selection = function(options, dispatcher) {
 // of the region, and the cancelation of
 // the region.
 
+// All coordinates are web coordinates.
+
 Selection.prototype = {
   x: function() {}, // getter/setter
   y: function() {}, // getter/setter
   width: function() {}, // getter/setter
   height: function() {},
-  getRegion: function() {
-    return this.x + ',' + this.y + ',' + this.width + ',' + this.height;
-  },
 };
 
 module.exports = Selection;
