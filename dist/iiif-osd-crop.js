@@ -130,6 +130,7 @@
 	  var regionStore = new Selection(options, dispatcher);
 
 	  var renderer = new SelectionDOMRenderer(options, regionStore, dispatcher);
+	  renderer.update();
 
 	  this.cropper = {
 	    enable: function() {},
@@ -144,7 +145,15 @@
 	      return new TransformSelection(options.osd)
 	    },
 	    getRegion: function() {},
-	    setRegion: function() {},
+
+	    // Given image coordinates, put the crop region in the correct location.
+	    setRegion: function(x, y, height, width) {
+	      var rect =  { x: x, y: y, height: height, width: width };
+	      var region = this.getTransformer().fromImageRegion(rect);
+	      regionStore.update(region);
+	      renderer.update();
+	    },
+
 	    lockAspectRatio: function() {},
 	    unlockAspectRatio: function(){},
 	    enableAnimation:function() {},
@@ -773,7 +782,7 @@
 	    render(state);
 	  }
 
-	  render(state);
+	  return { update: function() { render(state) }}
 	};
 
 	module.exports = SelectionDOMRenderer;
@@ -815,6 +824,7 @@
 	    return { x: Math.round(image_point.x), y: Math.round(image_point.y) }
 	  },
 
+	  // Map a rectangle defined in web coordinates to image coordinates
 	  toImageRegion: function(selection) {
 	    var x = Math.round(selection.x);
 	    var y = Math.round(selection.y);
@@ -827,6 +837,26 @@
 	                            width:       bottom_right.x - top_left.x,
 	                            serviceBase: this.osdCanvas.source['@id']
 	                           });
+	  },
+
+	  pixelForCoordinate: function(x, y) {
+	    var view_coord = this.osdCanvas.viewport.imageToViewportCoordinates(x, y);
+	    return this.osdCanvas.viewport.pixelFromPoint(view_coord);
+	  },
+
+	  // Map a rectangle defined in image coordinates to web coordinates
+	  fromImageRegion: function(image_region) {
+	    var x1 = image_region.x;
+	    var y1 = image_region.y;
+	    var x2 = image_region.x + image_region.width;
+	    var y2 = image_region.y + image_region.height;
+	    var top_left = this.pixelForCoordinate(x1, y1)
+	    var bottom_right = this.pixelForCoordinate(x2, y2)
+	    return { x:      top_left.x,
+	             y:      top_left.y,
+	             height: bottom_right.y - top_left.y,
+	             width:  bottom_right.x - top_left.x,
+	           };
 	  }
 	}
 
@@ -929,6 +959,12 @@
 	  y: function() {}, // getter/setter
 	  width: function() {}, // getter/setter
 	  height: function() {},
+	  update: function(options) {
+	    this.x = options.x;
+	    this.y = options.y;
+	    this.height = options.height;
+	    this.width = options.width;
+	  },
 	  getRegion: function() {
 	    return this.x + ',' + this.y + ',' + this.width + ',' + this.height;
 	  },
