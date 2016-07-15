@@ -11,10 +11,10 @@ var ee =                   require('event-emitter'),
 // so that this will always be that instance.
 var IiifCrop = function(options) {
   if (!options) { var options = { enabled: true,
-                                  x: 50,
-                                  y: 44,
-                                  width: 200,
-                                  height: 100
+                                  left: 50,
+                                  top: 44,
+                                  right: 250,
+                                  bottom: 144
                                 };
   }
   options.osd = this;

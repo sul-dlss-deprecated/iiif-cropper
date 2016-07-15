@@ -19,7 +19,7 @@ describe("TransformSelection", function() {
   var osdCanvas = { viewport: viewport, source: { '@id': 'http://example.com/foo/id' } };
 
   var transformer = new TransformSelection(osdCanvas);
-  var selection = new Selection({ x: 5, y: 6, width: 10, height: 20 });
+  var selection = new Selection({ left: 5, top: 6, right: 15, bottom: 26 });
 
   describe("toImageRegion", function() {
     it("transforms coordinates", function() {
@@ -32,10 +32,10 @@ describe("TransformSelection", function() {
     var region = { x: 10, y: 12, width: 20, height: 40 }
     it("transforms coordinates", function() {
       var selection = transformer.fromImageRegion(region)
-      expect(selection.x).toEqual(5);
-      expect(selection.y).toEqual(6);
-      expect(selection.width).toEqual(10);
-      expect(selection.height).toEqual(20);
+      expect(selection.left).toEqual(5);
+      expect(selection.top).toEqual(6);
+      expect(selection.right).toEqual(15);
+      expect(selection.bottom).toEqual(26);
     });
   })
 });

@@ -83,10 +83,10 @@
 	// so that this will always be that instance.
 	var IiifCrop = function(options) {
 	  if (!options) { var options = { enabled: true,
-	                                  x: 50,
-	                                  y: 44,
-	                                  width: 200,
-	                                  height: 100
+	                                  left: 50,
+	                                  top: 44,
+	                                  right: 250,
+	                                  bottom: 144
 	                                };
 	  }
 	  options.osd = this;
@@ -574,6 +574,7 @@
 	      currentDragHandle;
 
 	  var canvas = options.osd.canvas;
+	  var lastPosition = {};
 
 	  function render(state) {
 
@@ -593,10 +594,10 @@
 	  }
 
 	  function update(selectionBox, state) {
-	    selectionBox.style.left = state.x;
-	    selectionBox.style.top = state.y;
-	    selectionBox.style.width = state.width;
-	    selectionBox.style.height = state.height;
+	    selectionBox.style.left = state.left;
+	    selectionBox.style.top = state.top;
+	    selectionBox.style.width = state.getWidth();
+	    selectionBox.style.height = state.getHeight();
 	  }
 
 	  function buildSelectionBox() {
@@ -660,15 +661,16 @@
 	    event.stopPropagation();
 	    event.preventDefault();
 
+	    lastPosition = {}
 	    currentDragHandle = event.target;
 	    canvas.addEventListener('mousemove', handleSelectionDrag);
 	  }
 
 	  function updateState(newState) {
-	    state.x = newState.x;
-	    state.y = newState.y;
-	    state.width = newState.width;
-	    state.height = newState.height;
+	    state.left = newState.left;
+	    state.top = newState.top;
+	    state.right = newState.right;
+	    state.bottom = newState.bottom;
 	  }
 
 	  function handleSelectionDrag(event) {
@@ -682,21 +684,26 @@
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
-	      var newState = {
-	        x: mousePosition.x - state.width/2,
-	        y: mousePosition.y - state.height/2,
-	        width: state.width,
-	        height: state.height
-	      };
-	      updateState(newState);
+	      if (typeof(lastPosition.x) != 'undefined') {
+	        var dx = lastPosition.x - mousePosition.x
+	        var dy = lastPosition.y - mousePosition.y
+	        var newState = {
+	          left: state.left - dx,
+	          top: state.top - dy,
+	          right: state.right - dx,
+	          bottom: state.bottom - dy
+	        };
+	        updateState(newState);
+	      }
+	      lastPosition = { x: mousePosition.x, y: mousePosition.y }
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
 	      var newState = {
-	        x: state.x,
-	        y: mousePosition.y,
-	        width: state.width,
-	        height: state.height + (state.y - mousePosition.y)
+	        left: state.left,
+	        top: mousePosition.y,
+	        right: state.right,
+	        bottom: state.bottom
 	      };
 
 	      updateState(newState);
@@ -704,70 +711,70 @@
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
 	      newState = {
-	        x: state.x,
-	        y: state.y,
-	        width: state.width + (mousePosition.x - (state.width + state.x)),
-	        height: state.height
+	        left: state.left,
+	        top: state.top,
+	        right: mousePosition.x,
+	        bottom: state.bottom
 	      };
 	      updateState(newState);
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
 	      newState = {
-	        x: state.x,
-	        y: state.y,
-	        width: state.width,
-	        height: state.height + (mousePosition.y - (state.height + state.y))
+	        left: state.left,
+	        top: state.top,
+	        right: state.right,
+	        bottom: mousePosition.y
 	      };
 	      updateState(newState);
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
 	      newState = {
-	        x: mousePosition.x,
-	        y: state.y,
-	        width: state.width + (state.x - mousePosition.x),
-	        height: state.height
+	        left: mousePosition.x,
+	        top: state.top,
+	        right: state.right,
+	        bottom: state.bottom
 	      };
 	      updateState(newState);
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
 	      newState = {
-	        x: mousePosition.x,
-	        y: mousePosition.y,
-	        width: state.width + (state.x - mousePosition.x),
-	        height: state.height + (state.y - mousePosition.y)
+	        left: mousePosition.x,
+	        top:  mousePosition.y,
+	        right: state.right,
+	        bottom: state.bottom
 	      };
 	      updateState(newState);
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
 	      newState = {
-	        x: state.x,
-	        y: mousePosition.y,
-	        width: state.width + (mousePosition.x - (state.x + state.width)),
-	        height: state.height + (state.y - mousePosition.y)
+	        left: state.left,
+	        top:  mousePosition.y,
+	        right: mousePosition.x,
+	        bottom: state.bottom
 	      };
 	      updateState(newState);
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
 	      newState = {
-	        x: state.x,
-	        y: state.y,
-	        width: state.width + (mousePosition.x - (state.x + state.width)),
-	        height: state.height + (mousePosition.y - (state.y + state.height))
+	        left: state.left,
+	        top:  state.top,
+	        right: mousePosition.x,
+	        bottom: mousePosition.y
 	      };
 	      updateState(newState);
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
 	      newState = {
-	        x: mousePosition.x,
-	        y: state.y,
-	        width: state.width + (state.x - mousePosition.x),
-	        height: state.height + (mousePosition.y - (state.height + state.y))
+	        left: mousePosition.x,
+	        top:  state.top,
+	        right: state.right,
+	        bottom: mousePosition.y
 	      };
 	      updateState(newState);
 	    };
@@ -819,10 +826,10 @@
 
 	  // Map a rectangle defined in web coordinates to image coordinates
 	  toImageRegion: function(selection) {
-	    var x = Math.round(selection.x);
-	    var y = Math.round(selection.y);
+	    var x = Math.round(selection.left);
+	    var y = Math.round(selection.top);
 	    var top_left = this.coordinateForPixel(x, y);
-	    var bottom_right = this.coordinateForPixel(x + selection.width, y + selection.height);
+	    var bottom_right = this.coordinateForPixel(selection.right, selection.bottom);
 
 	    return new IiifRegion({ x:           top_left.x,
 	                            y:           top_left.y,
@@ -838,6 +845,7 @@
 	  },
 
 	  // Map a rectangle defined in image coordinates to web coordinates
+	  // TODO Should this return a Selection instance?
 	  fromImageRegion: function(image_region) {
 	    var x1 = image_region.x;
 	    var y1 = image_region.y;
@@ -845,10 +853,10 @@
 	    var y2 = image_region.y + image_region.height;
 	    var top_left = this.pixelForCoordinate(x1, y1)
 	    var bottom_right = this.pixelForCoordinate(x2, y2)
-	    return { x:      top_left.x,
-	             y:      top_left.y,
-	             height: bottom_right.y - top_left.y,
-	             width:  bottom_right.x - top_left.x,
+	    return { left:      top_left.x,
+	             top:      top_left.y,
+	             bottom: bottom_right.y,
+	             right:  bottom_right.x,
 	           };
 	  }
 	}
@@ -925,10 +933,10 @@
 	'use strict';
 
 	var Selection = function(options, dispatcher) {
-	  this.x = 0 || options.x;
-	  this.y = 0 || options.y;
-	  this.width = 0 || options.width;
-	  this.height = 0 || options.height;
+	  this.top = 0 || options.top;
+	  this.left = 0 || options.left;
+	  this.right = 0 || options.right;
+	  this.bottom = 0 || options.bottom;
 	  this.enabled = options.enabled;
 	  // aspectRatioLocked
 	};
@@ -949,19 +957,22 @@
 	// the region.
 
 	Selection.prototype = {
-	  x: function() {}, // getter/setter
-	  y: function() {}, // getter/setter
-	  width: function() {}, // getter/setter
-	  height: function() {},
+	  top: function() {}, // getter/setter
+	  left: function() {}, // getter/setter
+	  right: function() {}, // getter/setter
+	  bottom: function() {},
 	  update: function(options) {
-	    this.x = options.x;
-	    this.y = options.y;
-	    this.height = options.height;
-	    this.width = options.width;
+	    this.top = options.top;
+	    this.left = options.left;
+	    this.bottom = options.bottom;
+	    this.right = options.right;
 	  },
-	  getRegion: function() {
-	    return this.x + ',' + this.y + ',' + this.width + ',' + this.height;
+	  getWidth: function () {
+	    return this.right - this.left;
 	  },
+	  getHeight: function () {
+	    return this.bottom - this.top;
+	  }
 	};
 
 	module.exports = Selection;

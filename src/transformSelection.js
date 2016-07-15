@@ -18,10 +18,10 @@ TransformSelection.prototype = {
 
   // Map a rectangle defined in web coordinates to image coordinates
   toImageRegion: function(selection) {
-    var x = Math.round(selection.x);
-    var y = Math.round(selection.y);
+    var x = Math.round(selection.left);
+    var y = Math.round(selection.top);
     var top_left = this.coordinateForPixel(x, y);
-    var bottom_right = this.coordinateForPixel(x + selection.width, y + selection.height);
+    var bottom_right = this.coordinateForPixel(selection.right, selection.bottom);
 
     return new IiifRegion({ x:           top_left.x,
                             y:           top_left.y,
@@ -37,6 +37,7 @@ TransformSelection.prototype = {
   },
 
   // Map a rectangle defined in image coordinates to web coordinates
+  // TODO Should this return a Selection instance?
   fromImageRegion: function(image_region) {
     var x1 = image_region.x;
     var y1 = image_region.y;
@@ -44,10 +45,10 @@ TransformSelection.prototype = {
     var y2 = image_region.y + image_region.height;
     var top_left = this.pixelForCoordinate(x1, y1)
     var bottom_right = this.pixelForCoordinate(x2, y2)
-    return { x:      top_left.x,
-             y:      top_left.y,
-             height: bottom_right.y - top_left.y,
-             width:  bottom_right.x - top_left.x,
+    return { left:      top_left.x,
+             top:      top_left.y,
+             bottom: bottom_right.y,
+             right:  bottom_right.x,
            };
   }
 }

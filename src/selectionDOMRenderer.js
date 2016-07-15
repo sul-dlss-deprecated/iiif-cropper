@@ -6,6 +6,7 @@ var SelectionDOMRenderer = function(options, state) {
       currentDragHandle;
 
   var canvas = options.osd.canvas;
+  var lastPosition = {};
 
   function render(state) {
 
@@ -25,10 +26,10 @@ var SelectionDOMRenderer = function(options, state) {
   }
 
   function update(selectionBox, state) {
-    selectionBox.style.left = state.x;
-    selectionBox.style.top = state.y;
-    selectionBox.style.width = state.width;
-    selectionBox.style.height = state.height;
+    selectionBox.style.left = state.left;
+    selectionBox.style.top = state.top;
+    selectionBox.style.width = state.getWidth();
+    selectionBox.style.height = state.getHeight();
   }
 
   function buildSelectionBox() {
@@ -92,15 +93,16 @@ var SelectionDOMRenderer = function(options, state) {
     event.stopPropagation();
     event.preventDefault();
 
+    lastPosition = {}
     currentDragHandle = event.target;
     canvas.addEventListener('mousemove', handleSelectionDrag);
   }
 
   function updateState(newState) {
-    state.x = newState.x;
-    state.y = newState.y;
-    state.width = newState.width;
-    state.height = newState.height;
+    state.left = newState.left;
+    state.top = newState.top;
+    state.right = newState.right;
+    state.bottom = newState.bottom;
   }
 
   function handleSelectionDrag(event) {
@@ -114,21 +116,26 @@ var SelectionDOMRenderer = function(options, state) {
     };
 
     if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
-      var newState = {
-        x: mousePosition.x - state.width/2,
-        y: mousePosition.y - state.height/2,
-        width: state.width,
-        height: state.height
-      };
-      updateState(newState);
+      if (typeof(lastPosition.x) != 'undefined') {
+        var dx = lastPosition.x - mousePosition.x
+        var dy = lastPosition.y - mousePosition.y
+        var newState = {
+          left: state.left - dx,
+          top: state.top - dy,
+          right: state.right - dx,
+          bottom: state.bottom - dy
+        };
+        updateState(newState);
+      }
+      lastPosition = { x: mousePosition.x, y: mousePosition.y }
     };
 
     if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
       var newState = {
-        x: state.x,
-        y: mousePosition.y,
-        width: state.width,
-        height: state.height + (state.y - mousePosition.y)
+        left: state.left,
+        top: mousePosition.y,
+        right: state.right,
+        bottom: state.bottom
       };
 
       updateState(newState);
@@ -136,70 +143,70 @@ var SelectionDOMRenderer = function(options, state) {
 
     if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
       newState = {
-        x: state.x,
-        y: state.y,
-        width: state.width + (mousePosition.x - (state.width + state.x)),
-        height: state.height
+        left: state.left,
+        top: state.top,
+        right: mousePosition.x,
+        bottom: state.bottom
       };
       updateState(newState);
     };
 
     if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
       newState = {
-        x: state.x,
-        y: state.y,
-        width: state.width,
-        height: state.height + (mousePosition.y - (state.height + state.y))
+        left: state.left,
+        top: state.top,
+        right: state.right,
+        bottom: mousePosition.y
       };
       updateState(newState);
     };
 
     if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
       newState = {
-        x: mousePosition.x,
-        y: state.y,
-        width: state.width + (state.x - mousePosition.x),
-        height: state.height
+        left: mousePosition.x,
+        top: state.top,
+        right: state.right,
+        bottom: state.bottom
       };
       updateState(newState);
     };
 
     if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
       newState = {
-        x: mousePosition.x,
-        y: mousePosition.y,
-        width: state.width + (state.x - mousePosition.x),
-        height: state.height + (state.y - mousePosition.y)
+        left: mousePosition.x,
+        top:  mousePosition.y,
+        right: state.right,
+        bottom: state.bottom
       };
       updateState(newState);
     };
 
     if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
       newState = {
-        x: state.x,
-        y: mousePosition.y,
-        width: state.width + (mousePosition.x - (state.x + state.width)),
-        height: state.height + (state.y - mousePosition.y)
+        left: state.left,
+        top:  mousePosition.y,
+        right: mousePosition.x,
+        bottom: state.bottom
       };
       updateState(newState);
     };
 
     if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
       newState = {
-        x: state.x,
-        y: state.y,
-        width: state.width + (mousePosition.x - (state.x + state.width)),
-        height: state.height + (mousePosition.y - (state.y + state.height))
+        left: state.left,
+        top:  state.top,
+        right: mousePosition.x,
+        bottom: mousePosition.y
       };
       updateState(newState);
     };
 
     if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
       newState = {
-        x: mousePosition.x,
-        y: state.y,
-        width: state.width + (state.x - mousePosition.x),
-        height: state.height + (mousePosition.y - (state.height + state.y))
+        left: mousePosition.x,
+        top:  state.top,
+        right: state.right,
+        bottom: mousePosition.y
       };
       updateState(newState);
     };

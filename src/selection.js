@@ -1,10 +1,10 @@
 'use strict';
 
 var Selection = function(options, dispatcher) {
-  this.x = 0 || options.x;
-  this.y = 0 || options.y;
-  this.width = 0 || options.width;
-  this.height = 0 || options.height;
+  this.top = 0 || options.top;
+  this.left = 0 || options.left;
+  this.right = 0 || options.right;
+  this.bottom = 0 || options.bottom;
   this.enabled = options.enabled;
   // aspectRatioLocked
 };
@@ -25,19 +25,22 @@ var Selection = function(options, dispatcher) {
 // the region.
 
 Selection.prototype = {
-  x: function() {}, // getter/setter
-  y: function() {}, // getter/setter
-  width: function() {}, // getter/setter
-  height: function() {},
+  top: function() {}, // getter/setter
+  left: function() {}, // getter/setter
+  right: function() {}, // getter/setter
+  bottom: function() {},
   update: function(options) {
-    this.x = options.x;
-    this.y = options.y;
-    this.height = options.height;
-    this.width = options.width;
+    this.top = options.top;
+    this.left = options.left;
+    this.bottom = options.bottom;
+    this.right = options.right;
   },
-  getRegion: function() {
-    return this.x + ',' + this.y + ',' + this.width + ',' + this.height;
+  getWidth: function () {
+    return this.right - this.left;
   },
+  getHeight: function () {
+    return this.bottom - this.top;
+  }
 };
 
 module.exports = Selection;
