@@ -667,10 +667,14 @@
 	  }
 
 	  function updateState(newState) {
-	    state.left = newState.left;
-	    state.top = newState.top;
-	    state.right = newState.right;
-	    state.bottom = newState.bottom;
+	    if (newState.left)
+	      state.left = newState.left;
+	    if (newState.top)
+	      state.top = newState.top;
+	    if (newState.right)
+	      state.right = newState.right;
+	    if (newState.bottom)
+	      state.bottom = newState.bottom;
 	  }
 
 	  function handleSelectionDrag(event) {
@@ -699,84 +703,55 @@
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
-	      var newState = {
-	        left: state.left,
+	      updateState({
 	        top: mousePosition.y,
-	        right: state.right,
-	        bottom: state.bottom
-	      };
-
-	      updateState(newState);
+	      });
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
-	      newState = {
-	        left: state.left,
-	        top: state.top,
+	      updateState({
 	        right: mousePosition.x,
-	        bottom: state.bottom
-	      };
-	      updateState(newState);
+	      });
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
-	      newState = {
-	        left: state.left,
-	        top: state.top,
-	        right: state.right,
-	        bottom: mousePosition.y
-	      };
-	      updateState(newState);
+	      updateState({
+	        bottom: mousePosition.y,
+	      });
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
-	      newState = {
+	      updateState({
 	        left: mousePosition.x,
-	        top: state.top,
-	        right: state.right,
-	        bottom: state.bottom
-	      };
-	      updateState(newState);
+	      });
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
-	      newState = {
+	      updateState({
 	        left: mousePosition.x,
 	        top:  mousePosition.y,
-	        right: state.right,
-	        bottom: state.bottom
-	      };
-	      updateState(newState);
+	      });
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
-	      newState = {
-	        left: state.left,
+	      updateState({
 	        top:  mousePosition.y,
 	        right: mousePosition.x,
-	        bottom: state.bottom
-	      };
-	      updateState(newState);
+	      });
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
-	      newState = {
-	        left: state.left,
-	        top:  state.top,
+	      updateState({
 	        right: mousePosition.x,
-	        bottom: mousePosition.y
-	      };
-	      updateState(newState);
+	        bottom:  mousePosition.y,
+	      });
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
-	      newState = {
+	      updateState({
 	        left: mousePosition.x,
-	        top:  state.top,
-	        right: state.right,
-	        bottom: mousePosition.y
-	      };
-	      updateState(newState);
+	        bottom:  mousePosition.y,
+	      });
 	    };
 
 	    render(state);
