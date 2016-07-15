@@ -30,10 +30,14 @@ Selection.prototype = {
   right: function() {}, // getter/setter
   bottom: function() {},
   update: function(options) {
-    this.top = options.top;
-    this.left = options.left;
-    this.bottom = options.bottom;
-    this.right = options.right;
+    if (options.left)
+      this.left = options.left;
+    if (options.top)
+      this.top = options.top;
+    if (options.right)
+      this.right = options.right;
+    if (options.bottom)
+      this.bottom = options.bottom;
   },
   getWidth: function () {
     return this.right - this.left;

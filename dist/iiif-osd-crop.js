@@ -74,8 +74,8 @@
 
 	var ee =                   __webpack_require__(2),
 	    SelectionDOMRenderer = __webpack_require__(17),
-	    TransformSelection =   __webpack_require__(19),
-	    Selection =            __webpack_require__(21) 
+	    TransformSelection =   __webpack_require__(21),
+	    Selection =            __webpack_require__(23) 
 
 	// This is a factory, not a constructor.
 	// The API is designed so that it is only
@@ -568,11 +568,12 @@
 
 	'use strict';
 	var hasClass = __webpack_require__(18);
+	var Move = __webpack_require__(19);
+	var Resize = __webpack_require__(20);
 
 	var SelectionDOMRenderer = function(options, state) {
 	  var selectionBox,
-	      currentDragHandle,
-	      activeEdges;
+	      listener;
 
 	  var canvas = options.osd.canvas;
 	  var lastPosition = {};
@@ -656,59 +657,25 @@
 	    e.stopPropagation();
 	    e.preventDefault();
 
-	    currentDragHandle = undefined;
-	    canvas.removeEventListener('mousemove', handleSelectionDrag);
+	    listener = undefined;
+	    canvas.removeEventListener('mousemove', mouseMoved);
 	  }
 
 	  function handleDragStart(event) {
 	    event.stopPropagation();
 	    event.preventDefault();
 
-	    lastPosition = {}
-	    currentDragHandle = event.target;
-	    activeEdges = getActiveEdges(currentDragHandle);
-	    canvas.addEventListener('mousemove', handleSelectionDrag);
-	  }
-
-	  function getActiveEdges(handle) {
-	    var edges = { top: false, left: false, bottom: false, right: false }
-	    if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
-	      edges.top = true
-	    } else if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
-	      edges.right = true
-	    } else if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
-	      edges.bottom = true
-	    } else if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
-	      edges.left = true
-	    } else if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
-	      edges.left = true
-	      edges.top = true
-	    } else if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
-	      edges.right = true
-	      edges.top = true
-	    } else if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
-	      edges.right = true
-	      edges.bottom = true
-	    } else if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
-	      edges.left = true
-	      edges.bottom = true
+	    var currentDragHandle = event.target;
+	    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
+	      listener = new Move(state);
+	    } else {
+	      listener = new Resize(state, currentDragHandle);
 	    }
-	    return edges
+	    lastPosition = {}
+	    canvas.addEventListener('mousemove', mouseMoved);
 	  }
 
-	  function updateState(newState) {
-	    if (newState.left)
-	      state.left = newState.left;
-	    if (newState.top)
-	      state.top = newState.top;
-	    if (newState.right)
-	      state.right = newState.right;
-	    if (newState.bottom)
-	      state.bottom = newState.bottom;
-	  }
-
-	  // A drag event is either a move or a resize
-	  function handleSelectionDrag(event) {
+	  function mouseMoved(event) {
 	    event.stopPropagation();
 	    event.preventDefault();
 
@@ -718,40 +685,8 @@
 	      y: event.clientY - canvas.getBoundingClientRect().top,
 	    };
 
-	    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
-	      handleSelectionMove(mousePosition);
-	    } else {
-	      handleSelectionResize(mousePosition);
-	    }
+	    listener.move(mousePosition);
 	    render(state);
-	  }
-
-	  function handleSelectionMove(mousePosition) {
-	    if (typeof(lastPosition.x) != 'undefined') {
-	      var dx = lastPosition.x - mousePosition.x
-	      var dy = lastPosition.y - mousePosition.y
-	      var newState = {
-	        left: state.left - dx,
-	        top: state.top - dy,
-	        right: state.right - dx,
-	        bottom: state.bottom - dy
-	      };
-	      updateState(newState);
-	    }
-	    lastPosition = { x: mousePosition.x, y: mousePosition.y }
-	  }
-
-	  function handleSelectionResize(mousePosition) {
-	    var newState = {}
-	    if (activeEdges.top)
-	      newState.top = mousePosition.y
-	    if (activeEdges.right)
-	      newState.right = mousePosition.x
-	    if (activeEdges.left)
-	      newState.left = mousePosition.x
-	    if (activeEdges.bottom)
-	      newState.bottom = mousePosition.y
-	    updateState(newState)
 	  }
 
 	  return { update: function() { render(state) }}
@@ -776,11 +711,98 @@
 
 /***/ },
 /* 19 */
+/***/ function(module, exports) {
+
+	'use strict';
+	var Move = function(state) {
+	  this.state = state;
+	  this.lastPosition = {};
+	}
+
+	Move.prototype = {
+	  move: function(mousePosition) {
+	    if (typeof(this.lastPosition.x) != 'undefined') {
+	      var dx = this.lastPosition.x - mousePosition.x
+	      var dy = this.lastPosition.y - mousePosition.y
+	      var newState = {
+	        left: this.state.left - dx,
+	        top: this.state.top - dy,
+	        right: this.state.right - dx,
+	        bottom: this.state.bottom - dy
+	      };
+	      this.state.update(newState);
+	    }
+	    this.lastPosition = { x: mousePosition.x, y: mousePosition.y }
+	  }
+
+	}
+
+	module.exports = Move;
+
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	var hasClass = __webpack_require__(18);
+
+	var Resize = function(state, currentDragHandle) {
+	  function getActiveEdges(handle) {
+	    var edges = { top: false, left: false, bottom: false, right: false }
+	    if (hasClass(handle, 'iiif-crop-top-drag-handle')) {
+	      edges.top = true
+	    } else if (hasClass(handle, 'iiif-crop-right-drag-handle')) {
+	      edges.right = true
+	    } else if (hasClass(handle, 'iiif-crop-bottom-drag-handle')) {
+	      edges.bottom = true
+	    } else if (hasClass(handle, 'iiif-crop-left-drag-handle')) {
+	      edges.left = true
+	    } else if (hasClass(handle, 'iiif-crop-top-left-drag-node')) {
+	      edges.left = true
+	      edges.top = true
+	    } else if (hasClass(handle, 'iiif-crop-top-right-drag-node')) {
+	      edges.right = true
+	      edges.top = true
+	    } else if (hasClass(handle, 'iiif-crop-bottom-right-drag-node')) {
+	      edges.right = true
+	      edges.bottom = true
+	    } else if (hasClass(handle, 'iiif-crop-bottom-left-drag-node')) {
+	      edges.left = true
+	      edges.bottom = true
+	    }
+	    return edges
+	  }
+
+	  this.activeEdges = getActiveEdges(currentDragHandle)
+	  this.state = state
+	}
+
+	Resize.prototype = {
+	  move: function(mousePosition) {
+	    var newState = {}
+	    if (this.activeEdges.top)
+	      newState.top = mousePosition.y
+	    if (this.activeEdges.right)
+	      newState.right = mousePosition.x
+	    if (this.activeEdges.left)
+	      newState.left = mousePosition.x
+	    if (this.activeEdges.bottom)
+	      newState.bottom = mousePosition.y
+	    this.state.update(newState)
+	  }
+	}
+
+	module.exports = Resize;
+
+
+/***/ },
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var IiifRegion = __webpack_require__(20)
+	var IiifRegion = __webpack_require__(22)
 
 	var TransformSelection = function(osdCanvas) {
 	  this.osdCanvas = osdCanvas;
@@ -837,7 +859,7 @@
 
 
 /***/ },
-/* 20 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -899,7 +921,7 @@
 
 
 /***/ },
-/* 21 */
+/* 23 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -934,10 +956,14 @@
 	  right: function() {}, // getter/setter
 	  bottom: function() {},
 	  update: function(options) {
-	    this.top = options.top;
-	    this.left = options.left;
-	    this.bottom = options.bottom;
-	    this.right = options.right;
+	    if (options.left)
+	      this.left = options.left;
+	    if (options.top)
+	      this.top = options.top;
+	    if (options.right)
+	      this.right = options.right;
+	    if (options.bottom)
+	      this.bottom = options.bottom;
 	  },
 	  getWidth: function () {
 	    return this.right - this.left;
