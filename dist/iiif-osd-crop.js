@@ -573,6 +573,8 @@
 	  var selectionBox,
 	      currentDragHandle;
 
+	  var canvas = options.osd.canvas;
+
 	  function render(state) {
 
 	    if (!state.enabled) {
@@ -582,7 +584,7 @@
 
 	    if (!selectionBox === true) {
 	      selectionBox = buildSelectionBox();
-	      options.osd.canvas.appendChild(selectionBox);
+	      canvas.appendChild(selectionBox);
 	      bindSelectionEvents(selectionBox);
 	      update(selectionBox, state);
 	    } else {
@@ -650,7 +652,7 @@
 	      e.preventDefault();
 
 	      currentDragHandle = undefined;
-	      options.osd.canvas.removeEventListener('mousemove', handleSelectionDrag);
+	      canvas.removeEventListener('mousemove', handleSelectionDrag);
 	    });
 	  }
 
@@ -659,7 +661,7 @@
 	    event.preventDefault();
 
 	    currentDragHandle = event.target;
-	    options.osd.canvas.addEventListener('mousemove', handleSelectionDrag);
+	    canvas.addEventListener('mousemove', handleSelectionDrag);
 	  }
 
 	  function updateState(newState) {
@@ -675,8 +677,8 @@
 
 	    // var mousePosition = options.osd.viewport.windowToViewportCoordinates(OpenSeadragon.getMousePosition(event)),
 	    var mousePosition = {
-	      x: event.clientX - options.osd.canvas.getBoundingClientRect().left,
-	      y: event.clientY - options.osd.canvas.getBoundingClientRect().top,
+	      x: event.clientX - canvas.getBoundingClientRect().left,
+	      y: event.clientY - canvas.getBoundingClientRect().top,
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
