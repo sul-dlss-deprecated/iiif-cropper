@@ -571,7 +571,8 @@
 
 	var SelectionDOMRenderer = function(options, state) {
 	  var selectionBox,
-	      currentDragHandle;
+	      currentDragHandle,
+	      activeEdges;
 
 	  var canvas = options.osd.canvas;
 	  var lastPosition = {};
@@ -648,13 +649,15 @@
 	    });
 
 	    selectionBox.addEventListener('mousedown', handleDragStart);
-	    selectionBox.addEventListener('mouseup', function(e) {
-	      e.stopPropagation();
-	      e.preventDefault();
+	    selectionBox.addEventListener('mouseup', handleDragStop);
+	  }
 
-	      currentDragHandle = undefined;
-	      canvas.removeEventListener('mousemove', handleSelectionDrag);
-	    });
+	  function handleDragStop(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+
+	    currentDragHandle = undefined;
+	    canvas.removeEventListener('mousemove', handleSelectionDrag);
 	  }
 
 	  function handleDragStart(event) {
@@ -663,7 +666,34 @@
 
 	    lastPosition = {}
 	    currentDragHandle = event.target;
+	    activeEdges = getActiveEdges(currentDragHandle);
 	    canvas.addEventListener('mousemove', handleSelectionDrag);
+	  }
+
+	  function getActiveEdges(handle) {
+	    var edges = { top: false, left: false, bottom: false, right: false }
+	    if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
+	      edges.top = true
+	    } else if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
+	      edges.right = true
+	    } else if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
+	      edges.bottom = true
+	    } else if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
+	      edges.left = true
+	    } else if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
+	      edges.left = true
+	      edges.top = true
+	    } else if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
+	      edges.right = true
+	      edges.top = true
+	    } else if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
+	      edges.right = true
+	      edges.bottom = true
+	    } else if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
+	      edges.left = true
+	      edges.bottom = true
+	    }
+	    return edges
 	  }
 
 	  function updateState(newState) {
@@ -677,6 +707,7 @@
 	      state.bottom = newState.bottom;
 	  }
 
+	  // A drag event is either a move or a resize
 	  function handleSelectionDrag(event) {
 	    event.stopPropagation();
 	    event.preventDefault();
@@ -688,73 +719,39 @@
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
-	      if (typeof(lastPosition.x) != 'undefined') {
-	        var dx = lastPosition.x - mousePosition.x
-	        var dy = lastPosition.y - mousePosition.y
-	        var newState = {
-	          left: state.left - dx,
-	          top: state.top - dy,
-	          right: state.right - dx,
-	          bottom: state.bottom - dy
-	        };
-	        updateState(newState);
-	      }
-	      lastPosition = { x: mousePosition.x, y: mousePosition.y }
-	    };
-
-	    if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
-	      updateState({
-	        top: mousePosition.y,
-	      });
-	    };
-
-	    if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
-	      updateState({
-	        right: mousePosition.x,
-	      });
-	    };
-
-	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
-	      updateState({
-	        bottom: mousePosition.y,
-	      });
-	    };
-
-	    if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
-	      updateState({
-	        left: mousePosition.x,
-	      });
-	    };
-
-	    if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
-	      updateState({
-	        left: mousePosition.x,
-	        top:  mousePosition.y,
-	      });
-	    };
-
-	    if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
-	      updateState({
-	        top:  mousePosition.y,
-	        right: mousePosition.x,
-	      });
-	    };
-
-	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
-	      updateState({
-	        right: mousePosition.x,
-	        bottom:  mousePosition.y,
-	      });
-	    };
-
-	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
-	      updateState({
-	        left: mousePosition.x,
-	        bottom:  mousePosition.y,
-	      });
-	    };
-
+	      handleSelectionMove(mousePosition);
+	    } else {
+	      handleSelectionResize(mousePosition);
+	    }
 	    render(state);
+	  }
+
+	  function handleSelectionMove(mousePosition) {
+	    if (typeof(lastPosition.x) != 'undefined') {
+	      var dx = lastPosition.x - mousePosition.x
+	      var dy = lastPosition.y - mousePosition.y
+	      var newState = {
+	        left: state.left - dx,
+	        top: state.top - dy,
+	        right: state.right - dx,
+	        bottom: state.bottom - dy
+	      };
+	      updateState(newState);
+	    }
+	    lastPosition = { x: mousePosition.x, y: mousePosition.y }
+	  }
+
+	  function handleSelectionResize(mousePosition) {
+	    var newState = {}
+	    if (activeEdges.top)
+	      newState.top = mousePosition.y
+	    if (activeEdges.right)
+	      newState.right = mousePosition.x
+	    if (activeEdges.left)
+	      newState.left = mousePosition.x
+	    if (activeEdges.bottom)
+	      newState.bottom = mousePosition.y
+	    updateState(newState)
 	  }
 
 	  return { update: function() { render(state) }}
