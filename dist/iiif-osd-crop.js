@@ -74,8 +74,8 @@
 
 	var ee =                   __webpack_require__(2),
 	    SelectionDOMRenderer = __webpack_require__(17),
-	    TransformSelection =   __webpack_require__(21),
-	    Selection =            __webpack_require__(23) 
+	    TransformSelection =   __webpack_require__(22),
+	    Selection =            __webpack_require__(24) 
 
 	// This is a factory, not a constructor.
 	// The API is designed so that it is only
@@ -129,7 +129,7 @@
 
 	  var regionStore = new Selection(options, dispatcher);
 
-	  var renderer = new SelectionDOMRenderer(options, regionStore, dispatcher);
+	  var renderer = new SelectionDOMRenderer(options, regionStore, settingsStore, dispatcher);
 	  renderer.update();
 
 	  this.cropper = {
@@ -154,8 +154,12 @@
 	      renderer.update();
 	    },
 
-	    lockAspectRatio: function() {},
-	    unlockAspectRatio: function(){},
+	    lockAspectRatio: function() {
+	      settingsStore.aspectRatioLocked = true;
+	    },
+	    unlockAspectRatio: function(){
+	      settingsStore.aspectRatioLocked = false;
+	    },
 	    enableAnimation:function() {},
 	    disableAnimation: function() {},
 	    enableScaling: function() {},
@@ -570,17 +574,18 @@
 	var hasClass = __webpack_require__(18);
 	var Move = __webpack_require__(19);
 	var Resize = __webpack_require__(20);
+	var InteractionEvent = __webpack_require__(21);
 
-	var SelectionDOMRenderer = function(options, state) {
+	var SelectionDOMRenderer = function(options, state, settings) {
 	  var selectionBox,
+	      interaction,
 	      listener;
 
 	  var canvas = options.osd.canvas;
-	  var lastPosition = {};
 
 	  function render(state) {
 
-	    if (!state.enabled) {
+	    if (!settings.enabled) {
 	      options.osd.removeOverlay(selectionBox);
 	      return;
 	    }
@@ -650,7 +655,7 @@
 	    });
 
 	    selectionBox.addEventListener('mousedown', handleDragStart);
-	    selectionBox.addEventListener('mouseup', handleDragStop);
+	    canvas.addEventListener('mouseup', handleDragStop);
 	  }
 
 	  function handleDragStop(e) {
@@ -658,6 +663,7 @@
 	    e.preventDefault();
 
 	    listener = undefined;
+	    interaction = undefined;
 	    canvas.removeEventListener('mousemove', mouseMoved);
 	  }
 
@@ -669,9 +675,8 @@
 	    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
 	      listener = new Move(state);
 	    } else {
-	      listener = new Resize(state, currentDragHandle);
+	      listener = new Resize(state, currentDragHandle, settings);
 	    }
-	    lastPosition = {}
 	    canvas.addEventListener('mousemove', mouseMoved);
 	  }
 
@@ -679,13 +684,8 @@
 	    event.stopPropagation();
 	    event.preventDefault();
 
-	    // var mousePosition = options.osd.viewport.windowToViewportCoordinates(OpenSeadragon.getMousePosition(event)),
-	    var mousePosition = {
-	      x: event.clientX - canvas.getBoundingClientRect().left,
-	      y: event.clientY - canvas.getBoundingClientRect().top,
-	    };
-
-	    listener.move(mousePosition);
+	    interaction = new InteractionEvent(event, canvas, interaction);
+	    listener.move(interaction);
 	    render(state);
 	  }
 
@@ -716,25 +716,20 @@
 	'use strict';
 	var Move = function(state) {
 	  this.state = state;
-	  this.lastPosition = {};
 	}
 
 	Move.prototype = {
-	  move: function(mousePosition) {
-	    if (typeof(this.lastPosition.x) != 'undefined') {
-	      var dx = this.lastPosition.x - mousePosition.x
-	      var dy = this.lastPosition.y - mousePosition.y
+	  move: function(interactionEvent) {
+	    if (interactionEvent.hasMoved()) {
 	      var newState = {
-	        left: this.state.left - dx,
-	        top: this.state.top - dy,
-	        right: this.state.right - dx,
-	        bottom: this.state.bottom - dy
+	        left: this.state.left - interactionEvent.dx,
+	        top: this.state.top - interactionEvent.dy,
+	        right: this.state.right - interactionEvent.dx,
+	        bottom: this.state.bottom - interactionEvent.dy
 	      };
 	      this.state.update(newState);
 	    }
-	    this.lastPosition = { x: mousePosition.x, y: mousePosition.y }
 	  }
-
 	}
 
 	module.exports = Move;
@@ -747,7 +742,7 @@
 	'use strict';
 	var hasClass = __webpack_require__(18);
 
-	var Resize = function(state, currentDragHandle) {
+	var Resize = function(state, currentDragHandle, settings) {
 	  function getActiveEdges(handle) {
 	    var edges = { top: false, left: false, bottom: false, right: false }
 	    if (hasClass(handle, 'iiif-crop-top-drag-handle')) {
@@ -774,21 +769,52 @@
 	    return edges
 	  }
 
-	  this.activeEdges = getActiveEdges(currentDragHandle)
+	  this.originalEdges = getActiveEdges(currentDragHandle)
+	  this.startAspectRatio = state.getWidth() / state.getHeight()
+	  this.aspectRatioLocked = settings.aspectRatioLocked
 	  this.state = state
 	}
 
 	Resize.prototype = {
-	  move: function(mousePosition) {
+	  move: function(interactionEvent) {
 	    var newState = {}
-	    if (this.activeEdges.top)
-	      newState.top = mousePosition.y
-	    if (this.activeEdges.right)
-	      newState.right = mousePosition.x
-	    if (this.activeEdges.left)
-	      newState.left = mousePosition.x
-	    if (this.activeEdges.bottom)
-	      newState.bottom = mousePosition.y
+
+	    var dy = interactionEvent.dy
+	    var dx = interactionEvent.dx
+	    var activeEdges = { top: this.originalEdges.top,
+	                        right: this.originalEdges.right,
+	                        left: this.originalEdges.left,
+	                        bottom: this.originalEdges.bottom };
+
+	    if (this.aspectRatioLocked) {
+	      if (this.originalEdges.left && this.originalEdges.top) {
+	        dx = dy * this.startAspectRatio;
+	      } else if (this.originalEdges.right && this.originalEdges.top) {
+	        dx = -dy * this.startAspectRatio;
+	      } else if (this.originalEdges.left) {
+	        activeEdges.bottom = true
+	        dy = -dx / this.startAspectRatio;
+	      } else if (this.originalEdges.right) {
+	        activeEdges.bottom = true
+	        dy = dx / this.startAspectRatio;
+	      } else if (this.originalEdges.top) {
+	        activeEdges.right = true
+	        dx = -dy * this.startAspectRatio;
+	      } else if (this.originalEdges.bottom) {
+	        activeEdges.right = true
+	        dx = dy * this.startAspectRatio;
+	      }
+	    }
+
+	    if (activeEdges.top)
+	      newState.top = this.state.top - dy
+	    if (activeEdges.right)
+	      newState.right = this.state.right - dx
+	    if (activeEdges.left)
+	      newState.left = this.state.left - dx
+	    if (activeEdges.bottom)
+	      newState.bottom = this.state.bottom - dy
+
 	    this.state.update(newState)
 	  }
 	}
@@ -798,11 +824,41 @@
 
 /***/ },
 /* 21 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var InteractionEvent = function(event, canvas, prevInteraction) {
+	  this.mousePosition = {
+	    x: event.clientX - canvas.getBoundingClientRect().left,
+	    y: event.clientY - canvas.getBoundingClientRect().top,
+	  }
+
+	  if (typeof(prevInteraction) != 'undefined') {
+	    // copying prevInteraction.mousePosition here so that we don't hold a
+	    // reference to prevInteraction which could lead to a memory leak
+	    this.dx = prevInteraction.mousePosition.x - this.mousePosition.x
+	    this.dy = prevInteraction.mousePosition.y - this.mousePosition.y
+	  }
+	}
+
+	InteractionEvent.prototype = {
+	  hasMoved: function() {
+	    return typeof(this.dx) != 'undefined'
+	  }
+	}
+
+	module.exports = InteractionEvent;
+
+
+
+/***/ },
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var IiifRegion = __webpack_require__(22)
+	var IiifRegion = __webpack_require__(23)
 
 	var TransformSelection = function(osdCanvas) {
 	  this.osdCanvas = osdCanvas;
@@ -859,7 +915,7 @@
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -921,7 +977,7 @@
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -931,8 +987,6 @@
 	  this.left = 0 || options.left;
 	  this.right = 0 || options.right;
 	  this.bottom = 0 || options.bottom;
-	  this.enabled = options.enabled;
-	  // aspectRatioLocked
 	};
 
 	// This models the selected region.

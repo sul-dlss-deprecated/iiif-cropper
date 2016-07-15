@@ -5,8 +5,6 @@ var Selection = function(options, dispatcher) {
   this.left = 0 || options.left;
   this.right = 0 || options.right;
   this.bottom = 0 || options.bottom;
-  this.enabled = options.enabled;
-  // aspectRatioLocked
 };
 
 // This models the selected region.

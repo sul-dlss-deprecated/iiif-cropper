@@ -2,17 +2,18 @@
 var hasClass = require('./hasClass');
 var Move = require('./move');
 var Resize = require('./resize');
+var InteractionEvent = require('./interactionEvent');
 
-var SelectionDOMRenderer = function(options, state) {
+var SelectionDOMRenderer = function(options, state, settings) {
   var selectionBox,
+      interaction,
       listener;
 
   var canvas = options.osd.canvas;
-  var lastPosition = {};
 
   function render(state) {
 
-    if (!state.enabled) {
+    if (!settings.enabled) {
       options.osd.removeOverlay(selectionBox);
       return;
     }
@@ -82,7 +83,7 @@ var SelectionDOMRenderer = function(options, state) {
     });
 
     selectionBox.addEventListener('mousedown', handleDragStart);
-    selectionBox.addEventListener('mouseup', handleDragStop);
+    canvas.addEventListener('mouseup', handleDragStop);
   }
 
   function handleDragStop(e) {
@@ -90,6 +91,7 @@ var SelectionDOMRenderer = function(options, state) {
     e.preventDefault();
 
     listener = undefined;
+    interaction = undefined;
     canvas.removeEventListener('mousemove', mouseMoved);
   }
 
@@ -101,9 +103,8 @@ var SelectionDOMRenderer = function(options, state) {
     if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
       listener = new Move(state);
     } else {
-      listener = new Resize(state, currentDragHandle);
+      listener = new Resize(state, currentDragHandle, settings);
     }
-    lastPosition = {}
     canvas.addEventListener('mousemove', mouseMoved);
   }
 
@@ -111,13 +112,8 @@ var SelectionDOMRenderer = function(options, state) {
     event.stopPropagation();
     event.preventDefault();
 
-    // var mousePosition = options.osd.viewport.windowToViewportCoordinates(OpenSeadragon.getMousePosition(event)),
-    var mousePosition = {
-      x: event.clientX - canvas.getBoundingClientRect().left,
-      y: event.clientY - canvas.getBoundingClientRect().top,
-    };
-
-    listener.move(mousePosition);
+    interaction = new InteractionEvent(event, canvas, interaction);
+    listener.move(interaction);
     render(state);
   }
 

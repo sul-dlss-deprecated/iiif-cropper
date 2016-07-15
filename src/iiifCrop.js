@@ -57,7 +57,7 @@ var IiifCrop = function(options) {
 
   var regionStore = new Selection(options, dispatcher);
 
-  var renderer = new SelectionDOMRenderer(options, regionStore, dispatcher);
+  var renderer = new SelectionDOMRenderer(options, regionStore, settingsStore, dispatcher);
   renderer.update();
 
   this.cropper = {
@@ -82,8 +82,12 @@ var IiifCrop = function(options) {
       renderer.update();
     },
 
-    lockAspectRatio: function() {},
-    unlockAspectRatio: function(){},
+    lockAspectRatio: function() {
+      settingsStore.aspectRatioLocked = true;
+    },
+    unlockAspectRatio: function(){
+      settingsStore.aspectRatioLocked = false;
+    },
     enableAnimation:function() {},
     disableAnimation: function() {},
     enableScaling: function() {},

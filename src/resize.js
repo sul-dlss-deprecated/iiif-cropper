@@ -1,7 +1,7 @@
 'use strict';
 var hasClass = require('./hasClass');
 
-var Resize = function(state, currentDragHandle) {
+var Resize = function(state, currentDragHandle, settings) {
   function getActiveEdges(handle) {
     var edges = { top: false, left: false, bottom: false, right: false }
     if (hasClass(handle, 'iiif-crop-top-drag-handle')) {
@@ -28,21 +28,52 @@ var Resize = function(state, currentDragHandle) {
     return edges
   }
 
-  this.activeEdges = getActiveEdges(currentDragHandle)
+  this.originalEdges = getActiveEdges(currentDragHandle)
+  this.startAspectRatio = state.getWidth() / state.getHeight()
+  this.aspectRatioLocked = settings.aspectRatioLocked
   this.state = state
 }
 
 Resize.prototype = {
-  move: function(mousePosition) {
+  move: function(interactionEvent) {
     var newState = {}
-    if (this.activeEdges.top)
-      newState.top = mousePosition.y
-    if (this.activeEdges.right)
-      newState.right = mousePosition.x
-    if (this.activeEdges.left)
-      newState.left = mousePosition.x
-    if (this.activeEdges.bottom)
-      newState.bottom = mousePosition.y
+
+    var dy = interactionEvent.dy
+    var dx = interactionEvent.dx
+    var activeEdges = { top: this.originalEdges.top,
+                        right: this.originalEdges.right,
+                        left: this.originalEdges.left,
+                        bottom: this.originalEdges.bottom };
+
+    if (this.aspectRatioLocked) {
+      if (this.originalEdges.left && this.originalEdges.top) {
+        dx = dy * this.startAspectRatio;
+      } else if (this.originalEdges.right && this.originalEdges.top) {
+        dx = -dy * this.startAspectRatio;
+      } else if (this.originalEdges.left) {
+        activeEdges.bottom = true
+        dy = -dx / this.startAspectRatio;
+      } else if (this.originalEdges.right) {
+        activeEdges.bottom = true
+        dy = dx / this.startAspectRatio;
+      } else if (this.originalEdges.top) {
+        activeEdges.right = true
+        dx = -dy * this.startAspectRatio;
+      } else if (this.originalEdges.bottom) {
+        activeEdges.right = true
+        dx = dy * this.startAspectRatio;
+      }
+    }
+
+    if (activeEdges.top)
+      newState.top = this.state.top - dy
+    if (activeEdges.right)
+      newState.right = this.state.right - dx
+    if (activeEdges.left)
+      newState.left = this.state.left - dx
+    if (activeEdges.bottom)
+      newState.bottom = this.state.bottom - dy
+
     this.state.update(newState)
   }
 }
