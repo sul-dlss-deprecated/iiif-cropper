@@ -94,6 +94,13 @@ var SelectionDOMRenderer = function(options, state) {
     options.osd.canvas.addEventListener('mousemove', handleSelectionDrag);
   }
 
+  function updateState(newState) {
+    state.x = newState.x;
+    state.y = newState.y;
+    state.width = newState.width;
+    state.height = newState.height;
+  }
+
   function handleSelectionDrag(event) {
     event.stopPropagation();
     event.preventDefault();
@@ -105,10 +112,13 @@ var SelectionDOMRenderer = function(options, state) {
     };
 
     if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
-      state.x = mousePosition.x - state.width/2;
-      state.y = mousePosition.y - state.height/2;
-      state.width = state.width;
-      state.height = state.height;
+      var newState = {
+        x: mousePosition.x - state.width/2,
+        y: mousePosition.y - state.height/2,
+        width: state.width,
+        height: state.height
+      };
+      updateState(newState);
     };
 
     if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
@@ -119,11 +129,9 @@ var SelectionDOMRenderer = function(options, state) {
         height: state.height + (state.y - mousePosition.y)
       };
 
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
+      updateState(newState);
     };
+
     if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
       newState = {
         x: state.x,
@@ -131,12 +139,9 @@ var SelectionDOMRenderer = function(options, state) {
         width: state.width + (mousePosition.x - (state.width + state.x)),
         height: state.height
       };
-
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
+      updateState(newState);
     };
+
     if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
       newState = {
         x: state.x,
@@ -144,12 +149,9 @@ var SelectionDOMRenderer = function(options, state) {
         width: state.width,
         height: state.height + (mousePosition.y - (state.height + state.y))
       };
-
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
+      updateState(newState);
     };
+
     if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
       newState = {
         x: mousePosition.x,
@@ -157,11 +159,9 @@ var SelectionDOMRenderer = function(options, state) {
         width: state.width + (state.x - mousePosition.x),
         height: state.height
       };
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
+      updateState(newState);
     };
+
     if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
       newState = {
         x: mousePosition.x,
@@ -169,11 +169,9 @@ var SelectionDOMRenderer = function(options, state) {
         width: state.width + (state.x - mousePosition.x),
         height: state.height + (state.y - mousePosition.y)
       };
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
+      updateState(newState);
     };
+
     if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
       newState = {
         x: state.x,
@@ -181,11 +179,9 @@ var SelectionDOMRenderer = function(options, state) {
         width: state.width + (mousePosition.x - (state.x + state.width)),
         height: state.height + (state.y - mousePosition.y)
       };
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
+      updateState(newState);
     };
+
     if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
       newState = {
         x: state.x,
@@ -193,11 +189,9 @@ var SelectionDOMRenderer = function(options, state) {
         width: state.width + (mousePosition.x - (state.x + state.width)),
         height: state.height + (mousePosition.y - (state.y + state.height))
       };
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
+      updateState(newState);
     };
+
     if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
       newState = {
         x: mousePosition.x,
@@ -205,10 +199,7 @@ var SelectionDOMRenderer = function(options, state) {
         width: state.width + (state.x - mousePosition.x),
         height: state.height + (mousePosition.y - (state.height + state.y))
       };
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
+      updateState(newState);
     };
 
     render(state);

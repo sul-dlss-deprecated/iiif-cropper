@@ -662,6 +662,13 @@
 	    options.osd.canvas.addEventListener('mousemove', handleSelectionDrag);
 	  }
 
+	  function updateState(newState) {
+	    state.x = newState.x;
+	    state.y = newState.y;
+	    state.width = newState.width;
+	    state.height = newState.height;
+	  }
+
 	  function handleSelectionDrag(event) {
 	    event.stopPropagation();
 	    event.preventDefault();
@@ -673,10 +680,13 @@
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
-	      state.x = mousePosition.x - state.width/2;
-	      state.y = mousePosition.y - state.height/2;
-	      state.width = state.width;
-	      state.height = state.height;
+	      var newState = {
+	        x: mousePosition.x - state.width/2,
+	        y: mousePosition.y - state.height/2,
+	        width: state.width,
+	        height: state.height
+	      };
+	      updateState(newState);
 	    };
 
 	    if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
@@ -687,11 +697,9 @@
 	        height: state.height + (state.y - mousePosition.y)
 	      };
 
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
+	      updateState(newState);
 	    };
+
 	    if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
 	      newState = {
 	        x: state.x,
@@ -699,12 +707,9 @@
 	        width: state.width + (mousePosition.x - (state.width + state.x)),
 	        height: state.height
 	      };
-
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
+	      updateState(newState);
 	    };
+
 	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
 	      newState = {
 	        x: state.x,
@@ -712,12 +717,9 @@
 	        width: state.width,
 	        height: state.height + (mousePosition.y - (state.height + state.y))
 	      };
-
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
+	      updateState(newState);
 	    };
+
 	    if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
 	      newState = {
 	        x: mousePosition.x,
@@ -725,11 +727,9 @@
 	        width: state.width + (state.x - mousePosition.x),
 	        height: state.height
 	      };
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
+	      updateState(newState);
 	    };
+
 	    if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
 	      newState = {
 	        x: mousePosition.x,
@@ -737,11 +737,9 @@
 	        width: state.width + (state.x - mousePosition.x),
 	        height: state.height + (state.y - mousePosition.y)
 	      };
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
+	      updateState(newState);
 	    };
+
 	    if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
 	      newState = {
 	        x: state.x,
@@ -749,11 +747,9 @@
 	        width: state.width + (mousePosition.x - (state.x + state.width)),
 	        height: state.height + (state.y - mousePosition.y)
 	      };
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
+	      updateState(newState);
 	    };
+
 	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
 	      newState = {
 	        x: state.x,
@@ -761,11 +757,9 @@
 	        width: state.width + (mousePosition.x - (state.x + state.width)),
 	        height: state.height + (mousePosition.y - (state.y + state.height))
 	      };
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
+	      updateState(newState);
 	    };
+
 	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
 	      newState = {
 	        x: mousePosition.x,
@@ -773,10 +767,7 @@
 	        width: state.width + (state.x - mousePosition.x),
 	        height: state.height + (mousePosition.y - (state.height + state.y))
 	      };
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
+	      updateState(newState);
 	    };
 
 	    render(state);
@@ -877,10 +868,6 @@
 	  this.y = 0 || options.y;
 	  this.width = 0 || options.width;
 	  this.height = 0 || options.height;
-	  this.rotation = options.rotation || 0;
-	  this.scale = options.scale || 'full';
-	  this.quality = options.quality || 'default';
-	  this.format = options.format || 'jpg';
 	};
 
 	// The purpose of this component is to
@@ -916,8 +903,13 @@
 	    return [this.x, this.y, this.width, this.height];
 	  },
 
-	  getUrl: function() {
-	    return this.serviceBase + '/' + this.getRegion() + '/' + this.scale + '/' + this.rotation + '/' + this.quality + '.' + this.format;
+	  getUrl: function(opts) {
+	    opts = opts || {};
+	    var rotation = opts.rotation || 0;
+	    var scale = opts.scale || 'full';
+	    var quality = opts.quality || 'default';
+	    var format = opts.format || 'jpg';
+	    return this.serviceBase + '/' + this.getRegion() + '/' + scale + '/' + rotation + '/' + quality + '.' + format;
 	  }
 	};
 
