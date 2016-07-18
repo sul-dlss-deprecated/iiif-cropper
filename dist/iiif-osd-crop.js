@@ -147,7 +147,7 @@
 	    getRegion: function() {},
 
 	    // Given image coordinates, put the crop region in the correct location.
-	    setRegion: function(x, y, height, width) {
+	    setRegion: function(x, y, width, height) {
 	      var rect =  { x: x, y: y, height: height, width: width };
 	      var region = this.getTransformer().fromImageRegion(rect);
 	      regionStore.update(region);
