@@ -1,20 +1,26 @@
 'use strict';
 var hasClass = require('./hasClass');
+var Move = require('./move');
+var Resize = require('./resize');
+var InteractionEvent = require('./interactionEvent');
 
-var SelectionDOMRenderer = function(options, state) {
+var SelectionDOMRenderer = function(options, state, settings) {
   var selectionBox,
-      currentDragHandle;
+      interaction,
+      listener;
+
+  var canvas = options.osd.canvas;
 
   function render(state) {
 
-    if (!state.enabled) {
+    if (!settings.enabled) {
       options.osd.removeOverlay(selectionBox);
       return;
     }
 
     if (!selectionBox === true) {
       selectionBox = buildSelectionBox();
-      options.osd.canvas.appendChild(selectionBox);
+      canvas.appendChild(selectionBox);
       bindSelectionEvents(selectionBox);
       update(selectionBox, state);
     } else {
@@ -23,10 +29,10 @@ var SelectionDOMRenderer = function(options, state) {
   }
 
   function update(selectionBox, state) {
-    selectionBox.style.left = state.x;
-    selectionBox.style.top = state.y;
-    selectionBox.style.width = state.width;
-    selectionBox.style.height = state.height;
+    selectionBox.style.left = state.left;
+    selectionBox.style.top = state.top;
+    selectionBox.style.width = state.getWidth();
+    selectionBox.style.height = state.getHeight();
   }
 
   function buildSelectionBox() {
@@ -77,140 +83,37 @@ var SelectionDOMRenderer = function(options, state) {
     });
 
     selectionBox.addEventListener('mousedown', handleDragStart);
-    selectionBox.addEventListener('mouseup', function(e) {
-      e.stopPropagation();
-      e.preventDefault();
+    canvas.addEventListener('mouseup', handleDragStop);
+  }
 
-      currentDragHandle = undefined;
-      options.osd.canvas.removeEventListener('mousemove', handleSelectionDrag);
-    });
+  function handleDragStop(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    listener = undefined;
+    interaction = undefined;
+    canvas.removeEventListener('mousemove', mouseMoved);
   }
 
   function handleDragStart(event) {
     event.stopPropagation();
     event.preventDefault();
 
-    currentDragHandle = event.target;
-    options.osd.canvas.addEventListener('mousemove', handleSelectionDrag);
+    var currentDragHandle = event.target;
+    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
+      listener = new Move(state);
+    } else {
+      listener = new Resize(state, currentDragHandle, settings);
+    }
+    canvas.addEventListener('mousemove', mouseMoved);
   }
 
-  function handleSelectionDrag(event) {
+  function mouseMoved(event) {
     event.stopPropagation();
     event.preventDefault();
 
-    // var mousePosition = options.osd.viewport.windowToViewportCoordinates(OpenSeadragon.getMousePosition(event)),
-    var mousePosition = {
-      x: event.clientX - options.osd.canvas.getBoundingClientRect().left,
-      y: event.clientY - options.osd.canvas.getBoundingClientRect().top,
-    };
-
-    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
-      state.x = mousePosition.x - state.width/2;
-      state.y = mousePosition.y - state.height/2;
-      state.width = state.width;
-      state.height = state.height;
-    };
-
-    if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
-      var newState = {
-        x: state.x,
-        y: mousePosition.y,
-        width: state.width,
-        height: state.height + (state.y - mousePosition.y)
-      };
-
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
-    };
-    if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
-      newState = {
-        x: state.x,
-        y: state.y,
-        width: state.width + (mousePosition.x - (state.width + state.x)),
-        height: state.height
-      };
-
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
-    };
-    if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
-      newState = {
-        x: state.x,
-        y: state.y,
-        width: state.width,
-        height: state.height + (mousePosition.y - (state.height + state.y))
-      };
-
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
-    };
-    if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
-      newState = {
-        x: mousePosition.x,
-        y: state.y,
-        width: state.width + (state.x - mousePosition.x),
-        height: state.height
-      };
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
-    };
-    if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
-      newState = {
-        x: mousePosition.x,
-        y: mousePosition.y,
-        width: state.width + (state.x - mousePosition.x),
-        height: state.height + (state.y - mousePosition.y)
-      };
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
-    };
-    if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
-      newState = {
-        x: state.x,
-        y: mousePosition.y,
-        width: state.width + (mousePosition.x - (state.x + state.width)),
-        height: state.height + (state.y - mousePosition.y)
-      };
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
-    };
-    if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
-      newState = {
-        x: state.x,
-        y: state.y,
-        width: state.width + (mousePosition.x - (state.x + state.width)),
-        height: state.height + (mousePosition.y - (state.y + state.height))
-      };
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
-    };
-    if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
-      newState = {
-        x: mousePosition.x,
-        y: state.y,
-        width: state.width + (state.x - mousePosition.x),
-        height: state.height + (mousePosition.y - (state.height + state.y))
-      };
-      state.x = newState.x;
-      state.y = newState.y;
-      state.width = newState.width;
-      state.height = newState.height;
-    };
-
+    interaction = new InteractionEvent(event, canvas, interaction);
+    listener.move(interaction);
     render(state);
   }
 

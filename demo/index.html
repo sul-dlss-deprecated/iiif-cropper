@@ -125,6 +125,7 @@
                 <button class="getUrl">Get Region (url)</button>
                 <button class="getRegion">Get Region (Array)</button>
                 <button class="lockAspectRatio">Lock Aspect Ratio</button>
+                <button class="unlockAspectRatio">Unlock Aspect Ratio</button>
                 <button class="changeRegion">Random Selection</button>
             </div>
             <div id="osdCanvas1" class="osd-container"></div>
@@ -175,10 +176,14 @@
 
          $('.lockAspectRatio').click(function() {
              osdCanvas.cropper.lockAspectRatio();
+             $('.unlockAspectRatio').show();
+             $(this).hide();
          });
          $('.unlockAspectRatio').click(function() {
              osdCanvas.cropper.unlockAspectRatio();
-         });
+             $('.lockAspectRatio').show();
+             $(this).hide();
+         }).hide();
 
          $('.changeRegion').click(function() {
          });

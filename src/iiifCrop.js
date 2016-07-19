@@ -11,10 +11,10 @@ var ee =                   require('event-emitter'),
 // so that this will always be that instance.
 var IiifCrop = function(options) {
   if (!options) { var options = { enabled: true,
-                                  x: 50,
-                                  y: 44,
-                                  width: 200,
-                                  height: 100
+                                  left: 50,
+                                  top: 44,
+                                  right: 250,
+                                  bottom: 144
                                 };
   }
   options.osd = this;
@@ -57,7 +57,7 @@ var IiifCrop = function(options) {
 
   var regionStore = new Selection(options, dispatcher);
 
-  var renderer = new SelectionDOMRenderer(options, regionStore, dispatcher);
+  var renderer = new SelectionDOMRenderer(options, regionStore, settingsStore, dispatcher);
   renderer.update();
 
   this.cropper = {
@@ -75,15 +75,19 @@ var IiifCrop = function(options) {
     getRegion: function() {},
 
     // Given image coordinates, put the crop region in the correct location.
-    setRegion: function(x, y, height, width) {
+    setRegion: function(x, y, width, height) {
       var rect =  { x: x, y: y, height: height, width: width };
       var region = this.getTransformer().fromImageRegion(rect);
       regionStore.update(region);
       renderer.update();
     },
 
-    lockAspectRatio: function() {},
-    unlockAspectRatio: function(){},
+    lockAspectRatio: function() {
+      settingsStore.aspectRatioLocked = true;
+    },
+    unlockAspectRatio: function(){
+      settingsStore.aspectRatioLocked = false;
+    },
     enableAnimation:function() {},
     disableAnimation: function() {},
     enableScaling: function() {},

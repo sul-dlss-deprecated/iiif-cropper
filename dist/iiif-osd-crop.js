@@ -74,8 +74,8 @@
 
 	var ee =                   __webpack_require__(2),
 	    SelectionDOMRenderer = __webpack_require__(17),
-	    TransformSelection =   __webpack_require__(19),
-	    Selection =            __webpack_require__(21) 
+	    TransformSelection =   __webpack_require__(22),
+	    Selection =            __webpack_require__(24) 
 
 	// This is a factory, not a constructor.
 	// The API is designed so that it is only
@@ -83,10 +83,10 @@
 	// so that this will always be that instance.
 	var IiifCrop = function(options) {
 	  if (!options) { var options = { enabled: true,
-	                                  x: 50,
-	                                  y: 44,
-	                                  width: 200,
-	                                  height: 100
+	                                  left: 50,
+	                                  top: 44,
+	                                  right: 250,
+	                                  bottom: 144
 	                                };
 	  }
 	  options.osd = this;
@@ -129,7 +129,7 @@
 
 	  var regionStore = new Selection(options, dispatcher);
 
-	  var renderer = new SelectionDOMRenderer(options, regionStore, dispatcher);
+	  var renderer = new SelectionDOMRenderer(options, regionStore, settingsStore, dispatcher);
 	  renderer.update();
 
 	  this.cropper = {
@@ -147,15 +147,19 @@
 	    getRegion: function() {},
 
 	    // Given image coordinates, put the crop region in the correct location.
-	    setRegion: function(x, y, height, width) {
+	    setRegion: function(x, y, width, height) {
 	      var rect =  { x: x, y: y, height: height, width: width };
 	      var region = this.getTransformer().fromImageRegion(rect);
 	      regionStore.update(region);
 	      renderer.update();
 	    },
 
-	    lockAspectRatio: function() {},
-	    unlockAspectRatio: function(){},
+	    lockAspectRatio: function() {
+	      settingsStore.aspectRatioLocked = true;
+	    },
+	    unlockAspectRatio: function(){
+	      settingsStore.aspectRatioLocked = false;
+	    },
 	    enableAnimation:function() {},
 	    disableAnimation: function() {},
 	    enableScaling: function() {},
@@ -568,21 +572,27 @@
 
 	'use strict';
 	var hasClass = __webpack_require__(18);
+	var Move = __webpack_require__(19);
+	var Resize = __webpack_require__(20);
+	var InteractionEvent = __webpack_require__(21);
 
-	var SelectionDOMRenderer = function(options, state) {
+	var SelectionDOMRenderer = function(options, state, settings) {
 	  var selectionBox,
-	      currentDragHandle;
+	      interaction,
+	      listener;
+
+	  var canvas = options.osd.canvas;
 
 	  function render(state) {
 
-	    if (!state.enabled) {
+	    if (!settings.enabled) {
 	      options.osd.removeOverlay(selectionBox);
 	      return;
 	    }
 
 	    if (!selectionBox === true) {
 	      selectionBox = buildSelectionBox();
-	      options.osd.canvas.appendChild(selectionBox);
+	      canvas.appendChild(selectionBox);
 	      bindSelectionEvents(selectionBox);
 	      update(selectionBox, state);
 	    } else {
@@ -591,10 +601,10 @@
 	  }
 
 	  function update(selectionBox, state) {
-	    selectionBox.style.left = state.x;
-	    selectionBox.style.top = state.y;
-	    selectionBox.style.width = state.width;
-	    selectionBox.style.height = state.height;
+	    selectionBox.style.left = state.left;
+	    selectionBox.style.top = state.top;
+	    selectionBox.style.width = state.getWidth();
+	    selectionBox.style.height = state.getHeight();
 	  }
 
 	  function buildSelectionBox() {
@@ -645,140 +655,37 @@
 	    });
 
 	    selectionBox.addEventListener('mousedown', handleDragStart);
-	    selectionBox.addEventListener('mouseup', function(e) {
-	      e.stopPropagation();
-	      e.preventDefault();
+	    canvas.addEventListener('mouseup', handleDragStop);
+	  }
 
-	      currentDragHandle = undefined;
-	      options.osd.canvas.removeEventListener('mousemove', handleSelectionDrag);
-	    });
+	  function handleDragStop(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+
+	    listener = undefined;
+	    interaction = undefined;
+	    canvas.removeEventListener('mousemove', mouseMoved);
 	  }
 
 	  function handleDragStart(event) {
 	    event.stopPropagation();
 	    event.preventDefault();
 
-	    currentDragHandle = event.target;
-	    options.osd.canvas.addEventListener('mousemove', handleSelectionDrag);
+	    var currentDragHandle = event.target;
+	    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
+	      listener = new Move(state);
+	    } else {
+	      listener = new Resize(state, currentDragHandle, settings);
+	    }
+	    canvas.addEventListener('mousemove', mouseMoved);
 	  }
 
-	  function handleSelectionDrag(event) {
+	  function mouseMoved(event) {
 	    event.stopPropagation();
 	    event.preventDefault();
 
-	    // var mousePosition = options.osd.viewport.windowToViewportCoordinates(OpenSeadragon.getMousePosition(event)),
-	    var mousePosition = {
-	      x: event.clientX - options.osd.canvas.getBoundingClientRect().left,
-	      y: event.clientY - options.osd.canvas.getBoundingClientRect().top,
-	    };
-
-	    if (hasClass(currentDragHandle, 'iiif-crop-selection')) {
-	      state.x = mousePosition.x - state.width/2;
-	      state.y = mousePosition.y - state.height/2;
-	      state.width = state.width;
-	      state.height = state.height;
-	    };
-
-	    if (hasClass(currentDragHandle, 'iiif-crop-top-drag-handle')) {
-	      var newState = {
-	        x: state.x,
-	        y: mousePosition.y,
-	        width: state.width,
-	        height: state.height + (state.y - mousePosition.y)
-	      };
-
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
-	    };
-	    if (hasClass(currentDragHandle, 'iiif-crop-right-drag-handle')) {
-	      newState = {
-	        x: state.x,
-	        y: state.y,
-	        width: state.width + (mousePosition.x - (state.width + state.x)),
-	        height: state.height
-	      };
-
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
-	    };
-	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-drag-handle')) {
-	      newState = {
-	        x: state.x,
-	        y: state.y,
-	        width: state.width,
-	        height: state.height + (mousePosition.y - (state.height + state.y))
-	      };
-
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
-	    };
-	    if (hasClass(currentDragHandle, 'iiif-crop-left-drag-handle')) {
-	      newState = {
-	        x: mousePosition.x,
-	        y: state.y,
-	        width: state.width + (state.x - mousePosition.x),
-	        height: state.height
-	      };
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
-	    };
-	    if (hasClass(currentDragHandle, 'iiif-crop-top-left-drag-node')) {
-	      newState = {
-	        x: mousePosition.x,
-	        y: mousePosition.y,
-	        width: state.width + (state.x - mousePosition.x),
-	        height: state.height + (state.y - mousePosition.y)
-	      };
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
-	    };
-	    if (hasClass(currentDragHandle, 'iiif-crop-top-right-drag-node')) {
-	      newState = {
-	        x: state.x,
-	        y: mousePosition.y,
-	        width: state.width + (mousePosition.x - (state.x + state.width)),
-	        height: state.height + (state.y - mousePosition.y)
-	      };
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
-	    };
-	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-right-drag-node')) {
-	      newState = {
-	        x: state.x,
-	        y: state.y,
-	        width: state.width + (mousePosition.x - (state.x + state.width)),
-	        height: state.height + (mousePosition.y - (state.y + state.height))
-	      };
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
-	    };
-	    if (hasClass(currentDragHandle, 'iiif-crop-bottom-left-drag-node')) {
-	      newState = {
-	        x: mousePosition.x,
-	        y: state.y,
-	        width: state.width + (state.x - mousePosition.x),
-	        height: state.height + (mousePosition.y - (state.height + state.y))
-	      };
-	      state.x = newState.x;
-	      state.y = newState.y;
-	      state.width = newState.width;
-	      state.height = newState.height;
-	    };
-
+	    interaction = new InteractionEvent(event, canvas, interaction);
+	    listener.move(interaction);
 	    render(state);
 	  }
 
@@ -804,11 +711,154 @@
 
 /***/ },
 /* 19 */
+/***/ function(module, exports) {
+
+	'use strict';
+	var Move = function(state) {
+	  this.state = state;
+	}
+
+	Move.prototype = {
+	  move: function(interactionEvent) {
+	    if (interactionEvent.hasMoved()) {
+	      var newState = {
+	        left: this.state.left - interactionEvent.dx,
+	        top: this.state.top - interactionEvent.dy,
+	        right: this.state.right - interactionEvent.dx,
+	        bottom: this.state.bottom - interactionEvent.dy
+	      };
+	      this.state.update(newState);
+	    }
+	  }
+	}
+
+	module.exports = Move;
+
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	var hasClass = __webpack_require__(18);
+
+	var Resize = function(state, currentDragHandle, settings) {
+	  function getActiveEdges(handle) {
+	    var edges = { top: false, left: false, bottom: false, right: false }
+	    if (hasClass(handle, 'iiif-crop-top-drag-handle')) {
+	      edges.top = true
+	    } else if (hasClass(handle, 'iiif-crop-right-drag-handle')) {
+	      edges.right = true
+	    } else if (hasClass(handle, 'iiif-crop-bottom-drag-handle')) {
+	      edges.bottom = true
+	    } else if (hasClass(handle, 'iiif-crop-left-drag-handle')) {
+	      edges.left = true
+	    } else if (hasClass(handle, 'iiif-crop-top-left-drag-node')) {
+	      edges.left = true
+	      edges.top = true
+	    } else if (hasClass(handle, 'iiif-crop-top-right-drag-node')) {
+	      edges.right = true
+	      edges.top = true
+	    } else if (hasClass(handle, 'iiif-crop-bottom-right-drag-node')) {
+	      edges.right = true
+	      edges.bottom = true
+	    } else if (hasClass(handle, 'iiif-crop-bottom-left-drag-node')) {
+	      edges.left = true
+	      edges.bottom = true
+	    }
+	    return edges
+	  }
+
+	  this.originalEdges = getActiveEdges(currentDragHandle)
+	  this.startAspectRatio = state.getWidth() / state.getHeight()
+	  this.aspectRatioLocked = settings.aspectRatioLocked
+	  this.state = state
+	}
+
+	Resize.prototype = {
+	  move: function(interactionEvent) {
+	    var newState = {}
+
+	    var dy = interactionEvent.dy
+	    var dx = interactionEvent.dx
+	    var activeEdges = { top: this.originalEdges.top,
+	                        right: this.originalEdges.right,
+	                        left: this.originalEdges.left,
+	                        bottom: this.originalEdges.bottom };
+
+	    if (this.aspectRatioLocked) {
+	      if (this.originalEdges.left && this.originalEdges.top) {
+	        dx = dy * this.startAspectRatio;
+	      } else if (this.originalEdges.right && this.originalEdges.top) {
+	        dx = -dy * this.startAspectRatio;
+	      } else if (this.originalEdges.left) {
+	        activeEdges.bottom = true
+	        dy = -dx / this.startAspectRatio;
+	      } else if (this.originalEdges.right) {
+	        activeEdges.bottom = true
+	        dy = dx / this.startAspectRatio;
+	      } else if (this.originalEdges.top) {
+	        activeEdges.right = true
+	        dx = -dy * this.startAspectRatio;
+	      } else if (this.originalEdges.bottom) {
+	        activeEdges.right = true
+	        dx = dy * this.startAspectRatio;
+	      }
+	    }
+
+	    if (activeEdges.top)
+	      newState.top = this.state.top - dy
+	    if (activeEdges.right)
+	      newState.right = this.state.right - dx
+	    if (activeEdges.left)
+	      newState.left = this.state.left - dx
+	    if (activeEdges.bottom)
+	      newState.bottom = this.state.bottom - dy
+
+	    this.state.update(newState)
+	  }
+	}
+
+	module.exports = Resize;
+
+
+/***/ },
+/* 21 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var InteractionEvent = function(event, canvas, prevInteraction) {
+	  this.mousePosition = {
+	    x: event.clientX - canvas.getBoundingClientRect().left,
+	    y: event.clientY - canvas.getBoundingClientRect().top,
+	  }
+
+	  if (typeof(prevInteraction) != 'undefined') {
+	    // copying prevInteraction.mousePosition here so that we don't hold a
+	    // reference to prevInteraction which could lead to a memory leak
+	    this.dx = prevInteraction.mousePosition.x - this.mousePosition.x
+	    this.dy = prevInteraction.mousePosition.y - this.mousePosition.y
+	  }
+	}
+
+	InteractionEvent.prototype = {
+	  hasMoved: function() {
+	    return typeof(this.dx) != 'undefined'
+	  }
+	}
+
+	module.exports = InteractionEvent;
+
+
+
+/***/ },
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var IiifRegion = __webpack_require__(20)
+	var IiifRegion = __webpack_require__(23)
 
 	var TransformSelection = function(osdCanvas) {
 	  this.osdCanvas = osdCanvas;
@@ -826,10 +876,10 @@
 
 	  // Map a rectangle defined in web coordinates to image coordinates
 	  toImageRegion: function(selection) {
-	    var x = Math.round(selection.x);
-	    var y = Math.round(selection.y);
+	    var x = Math.round(selection.left);
+	    var y = Math.round(selection.top);
 	    var top_left = this.coordinateForPixel(x, y);
-	    var bottom_right = this.coordinateForPixel(x + selection.width, y + selection.height);
+	    var bottom_right = this.coordinateForPixel(selection.right, selection.bottom);
 
 	    return new IiifRegion({ x:           top_left.x,
 	                            y:           top_left.y,
@@ -845,6 +895,7 @@
 	  },
 
 	  // Map a rectangle defined in image coordinates to web coordinates
+	  // TODO Should this return a Selection instance?
 	  fromImageRegion: function(image_region) {
 	    var x1 = image_region.x;
 	    var y1 = image_region.y;
@@ -852,10 +903,10 @@
 	    var y2 = image_region.y + image_region.height;
 	    var top_left = this.pixelForCoordinate(x1, y1)
 	    var bottom_right = this.pixelForCoordinate(x2, y2)
-	    return { x:      top_left.x,
-	             y:      top_left.y,
-	             height: bottom_right.y - top_left.y,
-	             width:  bottom_right.x - top_left.x,
+	    return { left:      top_left.x,
+	             top:      top_left.y,
+	             bottom: bottom_right.y,
+	             right:  bottom_right.x,
 	           };
 	  }
 	}
@@ -864,7 +915,7 @@
 
 
 /***/ },
-/* 20 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -877,10 +928,6 @@
 	  this.y = 0 || options.y;
 	  this.width = 0 || options.width;
 	  this.height = 0 || options.height;
-	  this.rotation = options.rotation || 0;
-	  this.scale = options.scale || 'full';
-	  this.quality = options.quality || 'default';
-	  this.format = options.format || 'jpg';
 	};
 
 	// The purpose of this component is to
@@ -916,8 +963,13 @@
 	    return [this.x, this.y, this.width, this.height];
 	  },
 
-	  getUrl: function() {
-	    return this.serviceBase + '/' + this.getRegion() + '/' + this.scale + '/' + this.rotation + '/' + this.quality + '.' + this.format;
+	  getUrl: function(opts) {
+	    opts = opts || {};
+	    var rotation = opts.rotation || 0;
+	    var scale = opts.scale || 'full';
+	    var quality = opts.quality || 'default';
+	    var format = opts.format || 'jpg';
+	    return this.serviceBase + '/' + this.getRegion() + '/' + scale + '/' + rotation + '/' + quality + '.' + format;
 	  }
 	};
 
@@ -925,18 +977,16 @@
 
 
 /***/ },
-/* 21 */
+/* 24 */
 /***/ function(module, exports) {
 
 	'use strict';
 
 	var Selection = function(options, dispatcher) {
-	  this.x = 0 || options.x;
-	  this.y = 0 || options.y;
-	  this.width = 0 || options.width;
-	  this.height = 0 || options.height;
-	  this.enabled = options.enabled;
-	  // aspectRatioLocked
+	  this.top = 0 || options.top;
+	  this.left = 0 || options.left;
+	  this.right = 0 || options.right;
+	  this.bottom = 0 || options.bottom;
 	};
 
 	// This models the selected region.
@@ -955,19 +1005,26 @@
 	// the region.
 
 	Selection.prototype = {
-	  x: function() {}, // getter/setter
-	  y: function() {}, // getter/setter
-	  width: function() {}, // getter/setter
-	  height: function() {},
+	  top: function() {}, // getter/setter
+	  left: function() {}, // getter/setter
+	  right: function() {}, // getter/setter
+	  bottom: function() {},
 	  update: function(options) {
-	    this.x = options.x;
-	    this.y = options.y;
-	    this.height = options.height;
-	    this.width = options.width;
+	    if (options.left)
+	      this.left = options.left;
+	    if (options.top)
+	      this.top = options.top;
+	    if (options.right)
+	      this.right = options.right;
+	    if (options.bottom)
+	      this.bottom = options.bottom;
 	  },
-	  getRegion: function() {
-	    return this.x + ',' + this.y + ',' + this.width + ',' + this.height;
+	  getWidth: function () {
+	    return this.right - this.left;
 	  },
+	  getHeight: function () {
+	    return this.bottom - this.top;
+	  }
 	};
 
 	module.exports = Selection;
