@@ -12,7 +12,7 @@ var SelectionDOMRenderer = function(options, state, settings) {
   var canvas = options.osd.canvas;
 
   function render(state) {
-    if (!selectionBox === true) {
+    if (!selectionBox) {
       selectionBox = buildSelectionBox();
       canvas.appendChild(selectionBox);
       bindSelectionEvents(selectionBox);
