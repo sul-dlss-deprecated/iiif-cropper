@@ -1,8 +1,10 @@
+<!DOCTYPE html>
 <html>
     <head>
         <style>
          body {
-             background-color: rgb(0,40,40);
+           background-color: rgb(0,40,40);
+           position:relative;
          }
          .pageTitle {
              text-align: center;
@@ -37,7 +39,7 @@
              "mask" that sits over the rest of
              the canvas around the selected area.
              The first parameter prevents the shadow
-             from "spreading", and extends a very long way.
+             from "spreading", making it opaque.
              */
              box-shadow: 0 0 0 10000px rgba(0,0,0,0.5);
              cursor: move;
@@ -150,19 +152,12 @@
              if (enabled) {
                  $(this).data('enabled', false);
                  $('.iiif-crop-selection').addClass('disabled');
-                 $(this).text('Disable Cropper');
+                 $(this).text('Enable Cropper');
              } else {
                  $(this).data('enabled', true);
                  $('.iiif-crop-selection').removeClass('disabled');
-                 $(this).text('Enable Cropper');
+                 $(this).text('Disable Cropper');
              }
-
-             /*              $('.iiif-crop-selection').addClass('disabled'); */
-             /*              osdCanvas.cropper.disable(); */
-
-             /*              console.log('enabling'); */
-             /*              $('.iiif-crop-selection').removeClass('disabled'); */
-             /*              osdCanvas.cropper.enable(); */
          });
 
          $('.getUrl').click(function() {

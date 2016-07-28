@@ -12,13 +12,7 @@ var SelectionDOMRenderer = function(options, state, settings) {
   var canvas = options.osd.canvas;
 
   function render(state) {
-
-    if (!settings.enabled) {
-      options.osd.removeOverlay(selectionBox);
-      return;
-    }
-
-    if (!selectionBox === true) {
+    if (!selectionBox) {
       selectionBox = buildSelectionBox();
       canvas.appendChild(selectionBox);
       bindSelectionEvents(selectionBox);
@@ -29,10 +23,10 @@ var SelectionDOMRenderer = function(options, state, settings) {
   }
 
   function update(selectionBox, state) {
-    selectionBox.style.left = state.left;
-    selectionBox.style.top = state.top;
-    selectionBox.style.width = state.getWidth();
-    selectionBox.style.height = state.getHeight();
+    selectionBox.style.left = state.left + 'px';
+    selectionBox.style.top = state.top + 'px';
+    selectionBox.style.width = state.getWidth() + 'px';
+    selectionBox.style.height = state.getHeight() + 'px';
   }
 
   function buildSelectionBox() {
@@ -117,7 +111,7 @@ var SelectionDOMRenderer = function(options, state, settings) {
     render(state);
   }
 
-  return { update: function() { render(state) }}
+  return { update: function() { render(state); }};
 };
 
 module.exports = SelectionDOMRenderer;

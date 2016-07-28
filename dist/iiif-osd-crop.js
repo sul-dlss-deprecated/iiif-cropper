@@ -584,13 +584,7 @@
 	  var canvas = options.osd.canvas;
 
 	  function render(state) {
-
-	    if (!settings.enabled) {
-	      options.osd.removeOverlay(selectionBox);
-	      return;
-	    }
-
-	    if (!selectionBox === true) {
+	    if (!selectionBox) {
 	      selectionBox = buildSelectionBox();
 	      canvas.appendChild(selectionBox);
 	      bindSelectionEvents(selectionBox);
@@ -601,10 +595,10 @@
 	  }
 
 	  function update(selectionBox, state) {
-	    selectionBox.style.left = state.left;
-	    selectionBox.style.top = state.top;
-	    selectionBox.style.width = state.getWidth();
-	    selectionBox.style.height = state.getHeight();
+	    selectionBox.style.left = state.left + 'px';
+	    selectionBox.style.top = state.top + 'px';
+	    selectionBox.style.width = state.getWidth() + 'px';
+	    selectionBox.style.height = state.getHeight() + 'px';
 	  }
 
 	  function buildSelectionBox() {
@@ -689,7 +683,7 @@
 	    render(state);
 	  }
 
-	  return { update: function() { render(state) }}
+	  return { update: function() { render(state); }};
 	};
 
 	module.exports = SelectionDOMRenderer;
@@ -831,25 +825,24 @@
 	var InteractionEvent = function(event, canvas, prevInteraction) {
 	  this.mousePosition = {
 	    x: event.clientX - canvas.getBoundingClientRect().left,
-	    y: event.clientY - canvas.getBoundingClientRect().top,
-	  }
+	    y: event.clientY - canvas.getBoundingClientRect().top
+	  };
 
-	  if (typeof(prevInteraction) != 'undefined') {
+	  if (typeof(prevInteraction) !== 'undefined') {
 	    // copying prevInteraction.mousePosition here so that we don't hold a
 	    // reference to prevInteraction which could lead to a memory leak
-	    this.dx = prevInteraction.mousePosition.x - this.mousePosition.x
-	    this.dy = prevInteraction.mousePosition.y - this.mousePosition.y
+	    this.dx = prevInteraction.mousePosition.x - this.mousePosition.x;
+	    this.dy = prevInteraction.mousePosition.y - this.mousePosition.y;
 	  }
-	}
+	};
 
 	InteractionEvent.prototype = {
 	  hasMoved: function() {
-	    return typeof(this.dx) != 'undefined'
+	    return typeof(this.dx) !== 'undefined';
 	  }
-	}
+	};
 
 	module.exports = InteractionEvent;
-
 
 
 /***/ },
