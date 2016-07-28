@@ -117,7 +117,7 @@ var SelectionDOMRenderer = function(options, state, settings) {
     render(state);
   }
 
-  return { update: function() { render(state) }}
+  return { update: function() { render(state); }};
 };
 
 module.exports = SelectionDOMRenderer;

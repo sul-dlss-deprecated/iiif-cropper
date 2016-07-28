@@ -689,7 +689,7 @@
 	    render(state);
 	  }
 
-	  return { update: function() { render(state) }}
+	  return { update: function() { render(state); }};
 	};
 
 	module.exports = SelectionDOMRenderer;
