@@ -23,10 +23,10 @@ var SelectionDOMRenderer = function(options, state, settings) {
   }
 
   function update(selectionBox, state) {
-    selectionBox.style.left = state.left;
-    selectionBox.style.top = state.top;
-    selectionBox.style.width = state.getWidth();
-    selectionBox.style.height = state.getHeight();
+    selectionBox.style.left = state.left + 'px';
+    selectionBox.style.top = state.top + 'px';
+    selectionBox.style.width = state.getWidth() + 'px';
+    selectionBox.style.height = state.getHeight() + 'px';
   }
 
   function buildSelectionBox() {
