@@ -12,12 +12,6 @@ var SelectionDOMRenderer = function(options, state, settings) {
   var canvas = options.osd.canvas;
 
   function render(state) {
-
-    if (!settings.enabled) {
-      options.osd.removeOverlay(selectionBox);
-      return;
-    }
-
     if (!selectionBox === true) {
       selectionBox = buildSelectionBox();
       canvas.appendChild(selectionBox);
