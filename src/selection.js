@@ -28,13 +28,13 @@ Selection.prototype = {
   right: function() {}, // getter/setter
   bottom: function() {},
   update: function(options) {
-    if (options.left)
+    if (typeof options.left !== 'undefined')
       this.left = options.left;
-    if (options.top)
+    if (typeof options.top !== 'undefined')
       this.top = options.top;
-    if (options.right)
+    if (typeof options.right !== 'undefined')
       this.right = options.right;
-    if (options.bottom)
+    if (typeof options.bottom !== 'undefined')
       this.bottom = options.bottom;
   },
   getWidth: function () {
