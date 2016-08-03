@@ -11,6 +11,9 @@ var InteractionEvent = function(event, canvas, prevInteraction) {
     // reference to prevInteraction which could lead to a memory leak
     this.dx = prevInteraction.mousePosition.x - this.mousePosition.x;
     this.dy = prevInteraction.mousePosition.y - this.mousePosition.y;
+  } else {
+    this.dx = 0;
+    this.dy = 0;
   }
 };
 
