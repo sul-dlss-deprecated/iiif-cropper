@@ -1,6 +1,6 @@
 {
   "name": "iiif-cropper",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A IIIF image cropping library",
   "author": "Drew Winget",
   "license": "Apache 2.0",
