@@ -18,22 +18,33 @@ TransformSelection.prototype = {
 
   // Map a rectangle defined in web coordinates to image coordinates
   toImageRegion: function(selection) {
-    var x = Math.round(selection.left);
-    var y = Math.round(selection.top);
-    var top_left = this.coordinateForPixel(x, y);
-    var bottom_right = this.coordinateForPixel(selection.right, selection.bottom);
-
-    return new IiifRegion({ x:           top_left.x,
-                            y:           top_left.y,
-                            height:      bottom_right.y - top_left.y,
-                            width:       bottom_right.x - top_left.x,
-                            serviceBase: this.osdCanvas.source['@id']
-                           });
+    return new IiifRegion(this.coordinatesForIIIFRegion(selection));
   },
 
   pixelForCoordinate: function(x, y) {
     var view_coord = this.osdCanvas.viewport.imageToViewportCoordinates(x, y);
     return this.osdCanvas.viewport.pixelFromPoint(view_coord);
+  },
+
+  coordinatesForIIIFRegion: function(selection) {
+    var x = Math.round(selection.left);
+    var y = Math.round(selection.top);
+    var top_left = this.coordinateForPixel(x, y);
+    var bottom_right = this.coordinateForPixel(selection.right, selection.bottom);
+    var height = bottom_right.y - top_left.y;
+    var width = bottom_right.x - top_left.x;
+    if (width < 1) {
+      width = 1;
+    }
+    if (height < 1) {
+      height = 1;
+    }
+    return { x:           top_left.x,
+             y:           top_left.y,
+             height:      height,
+             width:       width,
+             serviceBase: this.osdCanvas.source['@id']
+    };
   },
 
   // Map a rectangle defined in image coordinates to web coordinates

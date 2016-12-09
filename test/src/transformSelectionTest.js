@@ -20,11 +20,17 @@ describe("TransformSelection", function() {
 
   var transformer = new TransformSelection(osdCanvas);
   var selection = new Selection({ left: 5, top: 6, right: 15, bottom: 26 });
+  var negativeSelection = new Selection({ left: 15, top: 26, right: 5, bottom: 6 });
 
   describe("toImageRegion", function() {
     it("transforms coordinates", function() {
       var region = transformer.toImageRegion(selection)
       expect(region.getUrl()).toEqual('http://example.com/foo/id/10,12,20,40/full/0/default.jpg');
+    });
+
+    it("does not allow for selection heights or widths less that 1", function() {
+      var region = transformer.toImageRegion(negativeSelection);
+      expect(region.getUrl()).toEqual('http://example.com/foo/id/30,52,1,1/full/0/default.jpg')
     });
   })
 
