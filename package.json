@@ -33,6 +33,7 @@
     "webpack-dev-server": "^1.14.0"
   },
   "dependencies": {
+    "event-emitter": "^0.3.4",
     "openseadragon": "^2.1.0"
   },
   "scripts": {
